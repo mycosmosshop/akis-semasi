@@ -42,6 +42,15 @@ dialog p.not{color:var(--soluk);font-size:12px;margin:6px 0}
 .sablonlar button{height:72px;text-align:left;white-space:normal;display:flex;flex-direction:column;justify-content:space-between;position:relative}
 .sablonlar button small{color:var(--soluk)}
 .sablonlar .sil{position:absolute;top:2px;right:4px;border:0;padding:0 4px;height:auto;color:#b91c1c;background:none}
+.sekmeler{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
+.sekmeler button.secili{background:var(--vurgu);border-color:var(--vurgu);color:#fff}
+#birak{border:2px dashed var(--cizgi);border-radius:10px;padding:28px 16px;text-align:center;cursor:pointer;color:var(--soluk)}
+#birak.ustunde{border-color:var(--vurgu);background:#eff6ff}
+dialog textarea{width:100%;padding:8px;border:1px solid var(--cizgi);border-radius:6px;font:inherit;resize:vertical}
+.rapor{border-collapse:collapse;width:100%;margin:6px 0 14px}
+.rapor th,.rapor td{border:1px solid var(--cizgi);padding:4px 8px;text-align:left}
+.rapor th{background:#f9fafb}
+.rapor td.sayi{text-align:right}
 #logoOnizleme{max-height:60px;max-width:160px;display:block;margin-top:6px}
 </style>
 </head>
@@ -56,19 +65,36 @@ dialog p.not{color:var(--soluk);font-size:12px;margin:6px 0}
       <button data-aktar="png">PNG resim</button>
       <button data-aktar="svg">SVG resim</button>
       <button data-aktar="pdf">PDF (yazdır › PDF olarak kaydet)</button>
+      <button data-aktar="vsdx">Visio (.vsdx)</button>
+      <button data-aktar="xlsx">Excel – antetli iş akışı</button>
       <button data-aktar="drawio">.drawio dosyası</button>
-      <small>Visio (.vsdx) için: editörde Dosya › Dışa aktar.</small>
     </div>
   </div>
-  <button id="bAc" title=".drawio veya .xml dosyası aç">📂 Dosyadan aç</button>
+  <button id="bAc" title="draw.io (.drawio, .xml) veya Visio (.vsdx, .vsd) dosyası aç">📂 Aç</button>
+  <button id="bYz" title="Fotoğraf, Excel, PDF ya da yazıdan akış şeması oluştur">✨ Yapay zekâ</button>
+  <div class="menu" id="mArac">
+    <button id="bArac">🧰 Araçlar</button>
+    <div>
+      <small>Çizgi atlama (kesişen çizgiler)</small>
+      <button data-arac="atla-arc">⌒ Yay ile atla</button>
+      <button data-arac="atla-gap">┆ Boşluk bırak</button>
+      <button data-arac="atla-yok">✕ Atlama yok</button>
+      <small>Şekil verileri (Visio Shape Data)</small>
+      <button data-arac="veri">Sorumlu / Süre / Maliyet / Durum alanlarını ekle</button>
+      <button data-arac="renk">Durum renklerini uygula</button>
+      <button data-arac="renksil">Durum renklerini kaldır</button>
+      <button data-arac="rapor">Diyagram raporu</button>
+    </div>
+  </div>
   <span id="durum"></span>
   <span class="bosluk"></span>
   <button id="bAntet">🏢 Antet</button>
   <button id="bBulut">☁ Bulut: kapalı</button>
 </header>
 <!-- draw.io (Apache-2.0) gömülü editör: Visio şekilleri, .vsdx içe aktarma, PNG/PDF/SVG dışa aktarma hazır gelir -->
-<iframe id="ed" src="https://embed.diagrams.net/?embed=1&proto=json&spin=1&lang=tr&libraries=1&noExitBtn=1&saveAndExit=0"></iframe>
-<input type="file" id="dosya" accept=".drawio,.xml,.dio" hidden>
+<iframe id="ed" src="https://embed.diagrams.net/?embed=1&proto=json&spin=1&lang=tr&libraries=1&noExitBtn=1&saveAndExit=0&configure=1"></iframe>
+<input type="file" id="dosya" accept=".drawio,.xml,.dio,.vsdx,.vsd" hidden>
+<input type="file" id="yzDosya" accept="image/png,image/jpeg,image/webp,application/pdf,.xlsx,.pdf" hidden>
 <input type="file" id="logoDosya" accept="image/png,image/jpeg,image/svg+xml" hidden>
 
 <dialog id="dCizimler">
@@ -101,12 +127,54 @@ dialog p.not{color:var(--soluk);font-size:12px;margin:6px 0}
     <input type="text" id="antetAlt" placeholder="İsteğe bağlı">
     <label for="antetHazirlayan">Hazırlayan</label>
     <input type="text" id="antetHazirlayan" placeholder="İsteğe bağlı">
+    <label for="antetDokNo">Doküman no</label>
+    <input type="text" id="antetDokNo" placeholder="Örn. İA-001">
+    <label for="antetRev">Revizyon no</label>
+    <input type="text" id="antetRev" placeholder="00">
     <label>Logo</label>
     <button id="bLogoSec">Logo seç…</button> <button id="bLogoSil" class="tehlike">Logoyu kaldır</button>
     <img id="logoOnizleme" alt="">
     <p class="not">Bu bilgiler yalnızca bu tarayıcıda saklanır; yeni antetli çizim oluştururken kullanılır.</p>
   </div>
   <div class="alt"><button data-kapat>Vazgeç</button><button class="ana" id="bAntetKaydet">Kaydet</button></div>
+</dialog>
+
+<dialog id="dYz">
+  <h2>Yapay zekâ ile akış şeması <button data-kapat>✕</button></h2>
+  <div class="ic">
+    <div class="sekmeler">
+      <button data-sekme="dosya" class="secili">Fotoğraf / Excel / PDF'ten</button>
+      <button data-sekme="yazi">Yazarak</button>
+      <button data-sekme="ayar">Ayarlar</button>
+    </div>
+    <div data-panel="dosya">
+      <div id="birak" tabindex="0">Bir akış şeması fotoğrafını, Excel dosyasını (.xlsx) ya da PDF'i buraya bırakın veya <u>seçmek için tıklayın</u>.</div>
+      <p class="not">Kutular, oklar ve karar dalları okunup düzenlenebilir çizime dönüştürülür. Excel'de çizilmiş şemalar ve "Sıra / Faaliyet / Sorumlu" tabloları da okunur.</p>
+    </div>
+    <div data-panel="yazi" hidden>
+      <label for="yzMetin">İş akışını anlatın</label>
+      <textarea id="yzMetin" rows="8" placeholder="Örn. Satın alma talebi birim tarafından açılır. Satın alma müdürü onaylarsa teklif toplanır, onaylamazsa talep sahibine iade edilir. En uygun teklif seçilip sipariş verilir, depo malı teslim alır."></textarea>
+      <p class="not">API anahtarı yoksa her satır bir adım olarak çizilir; "?" ile biten satırlar karar kutusu olur.</p>
+      <div style="text-align:right"><button class="ana" id="bYzYazi">Oluştur</button></div>
+    </div>
+    <div data-panel="ayar" hidden>
+      <label for="yzAnahtar">Gemini API anahtarı</label>
+      <input type="password" id="yzAnahtar" autocomplete="off">
+      <p class="not">Ücretsiz anahtar: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. Anahtar yalnızca bu tarayıcıda saklanır, istekler doğrudan Google'a gider.</p>
+      <label for="yzModel">Model</label>
+      <input type="text" id="yzModel" list="yzModeller">
+      <datalist id="yzModeller"><option value="gemini-flash-latest"><option value="gemini-flash-lite-latest"><option value="gemini-2.5-flash"></datalist>
+      <p class="not">Google ücretsiz modelleri zaman zaman değiştirir; hata alırsanız başka bir Flash modeli deneyin.</p>
+      <div style="text-align:right"><button class="ana" id="bYzKaydet">Kaydet</button></div>
+    </div>
+    <p id="yzDurum" class="not"></p>
+  </div>
+</dialog>
+
+<dialog id="dRapor">
+  <h2>Diyagram raporu <button data-kapat>✕</button></h2>
+  <div class="ic" id="raporIc"></div>
+  <div class="alt"><button data-kapat>Kapat</button><button class="ana" id="bRaporExcel">Excel'e aktar</button></div>
 </dialog>
 
 <dialog id="dBulut">
@@ -145,14 +213,26 @@ const kaydetDepo = () => { ls.yaz(K.cizimler, cizimler); ls.yaz(K.acik, acikId);
 // ---------- editör köprüsü (draw.io embed JSON protokolü) ----------
 const ed = $('#ed');
 const gonder = m => ed.contentWindow.postMessage(JSON.stringify(m), '*');
-let hazir = false, yukleniyor = false, bekleyenAktar = null;
+let hazir = false, yukleniyor = false, bekleyen = null, visioBekliyor = false;
 
-function ac(id) {
+// export isteğini gönderir, editörün cevabını (m.data, m.xml) döndürür
+function istek(msg) {
+  return new Promise((ok, hata) => {
+    if (bekleyen) return hata(new Error('Editör meşgul, biraz sonra tekrar deneyin'));
+    const zaman = setTimeout(() => { bekleyen = null; hata(new Error('Editör cevap vermedi')); }, 60000);
+    bekleyen = m => { clearTimeout(zaman); ok(m); };
+    gonder(msg);
+  });
+}
+// editördeki güncel çizim (otomatik kayıt gecikmiş olabilir)
+const guncelXml = () => istek({ action: 'export', format: 'xml' }).then(m => { guncelle(m.xml); return m.xml; });
+
+function ac(id, yuklenecek) {
   if (!cizimler[id]) return;
   acikId = id; kaydetDepo();
   $('#ad').value = cizimler[id].ad;
   document.title = cizimler[id].ad + ' – Akış Şeması';
-  if (hazir) { yukleniyor = true; gonder({ action: 'load', xml: cizimler[id].xml, autosave: 1, title: cizimler[id].ad }); }
+  if (hazir) { yukleniyor = true; gonder({ action: 'load', xml: yuklenecek ?? cizimler[id].xml, autosave: 1, title: cizimler[id].ad }); }
 }
 function olustur(ad, xml) {
   const id = yeniId();
@@ -168,15 +248,22 @@ function guncelle(xml) {
 addEventListener('message', e => {
   if (e.source !== ed.contentWindow || typeof e.data !== 'string') return;
   let m; try { m = JSON.parse(e.data); } catch { return; }
+  if (m.event === 'configure') gonder({ action: 'configure', config: {
+    compressXml: false, // sarmalayıcı XML'i okuyup düzenleyebilsin
+    defaultEdgeStyle: { edgeStyle: 'orthogonalEdgeStyle', rounded: '0', orthogonalLoop: '1', jettySize: 'auto', html: '1', jumpStyle: 'arc', jumpSize: '8' },
+  } });
   if (m.event === 'init') {
     hazir = true;
     if (!cizimler[acikId]) acikId = Object.keys(cizimler).sort((a, b) => cizimler[b].guncel - cizimler[a].guncel)[0];
     if (!acikId) olustur('Akış Şeması', ''); else ac(acikId);
   }
-  if (m.event === 'load') yukleniyor = false;
+  if (m.event === 'load') {
+    yukleniyor = false;
+    if (visioBekliyor) { visioBekliyor = false; guncelXml().then(() => durum('Visio dosyası açıldı')).catch(e => durum(e.message)); }
+  }
   if (m.event === 'autosave' && !yukleniyor) guncelle(m.xml);
   if (m.event === 'save') { guncelle(m.xml); gonder({ action: 'status', message: 'Kaydedildi', modified: false }); durum('Kaydedildi'); }
-  if (m.event === 'export' && bekleyenAktar) { const f = bekleyenAktar; bekleyenAktar = null; aktarBitir(f, m.data); }
+  if (m.event === 'export' && bekleyen) { const b = bekleyen; bekleyen = null; b(m); }
 });
 
 // ---------- çizim listesi ----------
@@ -211,7 +298,7 @@ $('#ad').onkeydown = e => { if (e.key === 'Enter') e.target.blur(); };
 // ---------- şablonlar ----------
 const model = (hucreler, sayfa = '') => `<mxGraphModel ${sayfa}><root><mxCell id="0"/><mxCell id="1" parent="0"/>${hucreler}</root></mxGraphModel>`;
 const kutu = (id, deger, stil, x, y, w, h) => `<mxCell id="${id}" value="${kacis(deger)}" style="${stil}" vertex="1" parent="1"><mxGeometry x="${x}" y="${y}" width="${w}" height="${h}" as="geometry"/></mxCell>`;
-const ok = (id, a, b, deger = '') => `<mxCell id="${id}" value="${kacis(deger)}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="1" source="${a}" target="${b}"><mxGeometry relative="1" as="geometry"/></mxCell>`;
+const ok = (id, a, b, deger = '') => `<mxCell id="${id}" value="${kacis(deger)}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;jumpStyle=arc;jumpSize=8;" edge="1" parent="1" source="${a}" target="${b}"><mxGeometry relative="1" as="geometry"/></mxCell>`;
 const S = {
   basla: 'ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;',
   bitir: 'ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;',
@@ -240,7 +327,7 @@ function antetli() {
     kutu('antet', '', 'rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;', m, m, gen, 80) +
     logo +
     kutu('sirket', `<b style="font-size:16px">${kacis(a.sirket || 'ŞİRKET ADI')}</b><br><span style="font-size:11px;color:#555">${kacis(a.alt || '')}</span>`, S.metin, m + 130, m + 8, 330, 64) +
-    kutu('bilgi', `<b>Süreç:</b> ...<br><b>Doküman No:</b> ...<br><b>Tarih:</b> ${bugun}<br><b>Rev.:</b> 00`, S.metin + 'fontSize=11;', m + gen - 230, m + 6, 220, 68) +
+    kutu('bilgi', `<b>Süreç:</b> ...<br><b>Doküman No:</b> ${kacis(a.dokNo || '...')}<br><b>Tarih:</b> ${bugun}<br><b>Rev.:</b> ${kacis(a.rev || '00')}`, S.metin + 'fontSize=11;', m + gen - 230, m + 6, 220, 68) +
     kutu('baslik', '<b style="font-size:18px">SÜREÇ AKIŞ ŞEMASI</b>', 'text;html=1;align=center;verticalAlign=middle;', m, m + 95, gen, 30) +
     basitAkis(m + 150, m + 150) +
     kutu('altbilgi', `<b>Hazırlayan:</b> ${kacis(a.hazirlayan || '')}`, S.metin + 'fontSize=11;', m + 10, H - m - 40, 300, 30) +
@@ -292,6 +379,7 @@ let antetLogo = null;
 $('#bAntet').onclick = () => {
   const a = ls.al(K.antet, {});
   $('#antetSirket').value = a.sirket || ''; $('#antetAlt').value = a.alt || ''; $('#antetHazirlayan').value = a.hazirlayan || '';
+  $('#antetDokNo').value = a.dokNo || ''; $('#antetRev').value = a.rev || '';
   antetLogo = a.logo || null; $('#logoOnizleme').src = antetLogo || ''; $('#logoOnizleme').hidden = !antetLogo;
   $('#dAntet').showModal();
 };
@@ -303,42 +391,721 @@ $('#logoDosya').onchange = e => {
   const r = new FileReader(); r.onload = () => { antetLogo = r.result; $('#logoOnizleme').src = antetLogo; $('#logoOnizleme').hidden = false; }; r.readAsDataURL(f);
 };
 $('#bAntetKaydet').onclick = () => {
-  ls.yaz(K.antet, { sirket: $('#antetSirket').value.trim(), alt: $('#antetAlt').value.trim(), hazirlayan: $('#antetHazirlayan').value.trim(), logo: antetLogo });
+  ls.yaz(K.antet, { sirket: $('#antetSirket').value.trim(), alt: $('#antetAlt').value.trim(), hazirlayan: $('#antetHazirlayan').value.trim(),
+    dokNo: $('#antetDokNo').value.trim(), rev: $('#antetRev').value.trim(), logo: antetLogo });
   $('#dAntet').close(); durum('Antet kaydedildi; yeni › Antetli A4 ile kullanın');
 };
 
-// ---------- dışa / içe aktarma ----------
+// ---------- kütüphaneler (gerektiğinde yüklenir) ----------
+const KUTUP = {
+  JSZip: 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js',
+  ExcelJS: 'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js',
+};
+const yuklenenKutup = {};
+function kutuphane(ad) {
+  if (window[ad]) return Promise.resolve(window[ad]);
+  return yuklenenKutup[ad] ||= new Promise((ok, hata) => {
+    const s = document.createElement('script'); s.src = KUTUP[ad];
+    s.onload = () => ok(window[ad]);
+    s.onerror = () => { delete yuklenenKutup[ad]; hata(new Error(ad + ' kütüphanesi yüklenemedi (internet bağlantısını kontrol edin)')); };
+    document.head.appendChild(s);
+  });
+}
+
+// ---------- çizim modelini okuma / yazma ----------
+const xmlCoz = s => new DOMParser().parseFromString(s, 'application/xml');
+const xmlYaz = n => new XMLSerializer().serializeToString(n);
+// draw.io sıkıştırması: base64(deflateRaw(encodeURIComponent(xml)))
+async function acilmis(metin) {
+  const b = Uint8Array.from(atob(metin), c => c.charCodeAt(0));
+  const s = await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+  return decodeURIComponent(s);
+}
+// her sayfa için { ad, gm (mxGraphModel öğesi), dg (diagram öğesi) }
+async function sayfalariOku(xml) {
+  const bos = () => [{ ad: 'Sayfa-1', gm: xmlCoz(model('')).documentElement }];
+  if (!xml || !xml.trim()) return bos();
+  const d = xmlCoz(xml);
+  if (d.documentElement.nodeName === 'mxGraphModel') return [{ ad: 'Sayfa-1', gm: d.documentElement }];
+  const sonuc = [];
+  for (const [i, dg] of [...d.getElementsByTagName('diagram')].entries()) {
+    let gm = dg.getElementsByTagName('mxGraphModel')[0];
+    if (!gm) { const t = dg.textContent.trim(); gm = xmlCoz(t ? await acilmis(t) : model('')).documentElement; }
+    sonuc.push({ ad: dg.getAttribute('name') || `Sayfa-${i + 1}`, gm, dg });
+  }
+  return sonuc.length ? sonuc : bos();
+}
+function sayfalariYaz(sayfalar) {
+  if (sayfalar.length === 1 && !sayfalar[0].dg) return xmlYaz(sayfalar[0].gm);
+  const d = xmlCoz('<mxfile/>');
+  for (const s of sayfalar) {
+    const dg = d.createElement('diagram');
+    dg.setAttribute('name', s.ad); if (s.dg?.getAttribute('id')) dg.setAttribute('id', s.dg.getAttribute('id'));
+    dg.appendChild(d.importNode(s.gm, true)); d.documentElement.appendChild(dg);
+  }
+  return xmlYaz(d);
+}
+function stilCoz(s) {
+  const o = {};
+  for (const p of (s || '').split(';')) { if (!p) continue; const i = p.indexOf('='); if (i < 0) o._sekil ??= p; else o[p.slice(0, i)] = p.slice(i + 1); }
+  return o;
+}
+const stilYaz = o => Object.entries(o).map(([k, v]) => k === '_sekil' ? v : `${k}=${v}`).join(';') + ';';
+function duzMetin(deger, html) {
+  if (!deger) return '';
+  if (html !== '1') return deger.trim();
+  const d = new DOMParser().parseFromString(deger.replace(/<br\s*\/?>/gi, '\n').replace(/<\/(div|p|li)>/gi, '\n'), 'text/html');
+  return d.body.textContent.replace(/ /g, ' ').replace(/[ \t]+\n/g, '\n').replace(/\n{2,}/g, '\n').trim();
+}
+const VERI_DISI = new Set(['label', 'placeholders', 'id', 'tooltip', 'link']);
+const nokta = (g, as) => { const p = g?.querySelector(`mxPoint[as="${as}"]`); return p ? { x: +(p.getAttribute('x') || 0), y: +(p.getAttribute('y') || 0) } : null; };
+function hucreleriOku(gm) {
+  const kok = gm.getElementsByTagName('root')[0], liste = [], harita = {};
+  for (const el of [...(kok?.children || [])]) {
+    const c = el.nodeName === 'mxCell' ? el : el.getElementsByTagName('mxCell')[0]; if (!c) continue;
+    const sar = el !== c, veri = {};
+    if (sar) for (const a of el.attributes) if (!VERI_DISI.has(a.name)) veri[a.name] = a.value;
+    const g = [...c.children].find(n => n.nodeName === 'mxGeometry');
+    const stil = stilCoz(c.getAttribute('style'));
+    const h = {
+      id: (sar ? el : c).getAttribute('id'), el, c, sar, veri, stil,
+      deger: (sar ? el.getAttribute('label') : c.getAttribute('value')) || '',
+      vertex: c.getAttribute('vertex') === '1', edge: c.getAttribute('edge') === '1',
+      parent: c.getAttribute('parent'), source: c.getAttribute('source'), target: c.getAttribute('target'),
+      gorunur: c.getAttribute('visible') !== '0',
+      x: +(g?.getAttribute('x') || 0), y: +(g?.getAttribute('y') || 0), w: +(g?.getAttribute('width') || 0), h: +(g?.getAttribute('height') || 0),
+      noktalar: [...(g?.querySelectorAll('Array[as="points"] > mxPoint') || [])].map(p => ({ x: +(p.getAttribute('x') || 0), y: +(p.getAttribute('y') || 0) })),
+      kaynakNokta: nokta(g, 'sourcePoint'), hedefNokta: nokta(g, 'targetPoint'),
+    };
+    h.metin = duzMetin(h.deger, stil.html);
+    liste.push(h); harita[h.id] = h;
+  }
+  const mutlak = h => {
+    if (h.ax != null) return;
+    const p = harita[h.parent];
+    if (p && p.vertex) { mutlak(p); h.ox = p.ax; h.oy = p.ay; } else { h.ox = 0; h.oy = 0; }
+    h.ax = h.ox + h.x; h.ay = h.oy + h.y;
+  };
+  liste.forEach(mutlak);
+  return { liste, harita };
+}
+const seritMi = h => h.stil._sekil === 'swimlane' || h.stil.shape === 'swimlane' || h.stil.shape === 'pool';
+// akış semantiği: adımlar sırayla, tipleri, sorumluları ve sonraki adımlarıyla
+function akisOku(gm) {
+  const { liste, harita } = hucreleriOku(gm);
+  const katman = h => !h.parent || h.parent === '0' || !harita[h.parent];
+  const kenarlar = liste.filter(h => h.edge && harita[h.source] && harita[h.target]);
+  const etiket = {};
+  for (const h of liste) if (h.vertex && harita[h.parent]?.edge && h.metin) etiket[h.parent] = [etiket[h.parent], h.metin].filter(Boolean).join(' ');
+  for (const k of kenarlar) etiket[k.id] = [k.metin, etiket[k.id]].filter(Boolean).join(' ');
+  const bagli = new Set(kenarlar.flatMap(k => [k.source, k.target]));
+  const seritler = liste.filter(h => h.vertex && seritMi(h));
+  const adimHucreleri = liste.filter(h => h.vertex && !katman(h) && !seritMi(h) && !harita[h.parent]?.edge &&
+    h.stil._sekil !== 'text' && h.stil._sekil !== 'group' && h.stil.shape !== 'image' && (h.metin || bagli.has(h.id)));
+  const adimSet = new Set(adimHucreleri.map(h => h.id));
+  const giren = id => kenarlar.filter(k => k.target === id), cikan = id => kenarlar.filter(k => k.source === id);
+  const tip = h => {
+    const s = h.stil, ad = (s.shape || s._sekil || '').toLowerCase();
+    if (/rhombus|decision/.test(ad)) return 'Karar';
+    if (/ellipse|terminator|start|end|doublecircle/.test(ad) || (s.rounded === '1' && +s.arcSize >= 40))
+      return !giren(h.id).length ? 'Başla' : !cikan(h.id).length ? 'Bitir' : 'Bağlantı';
+    if (/document/.test(ad)) return 'Belge';
+    if (/parallelogram|data|cylinder|database/.test(ad)) return 'Veri';
+    if (/process|predefined/.test(ad)) return 'Alt süreç';
+    return 'İşlem';
+  };
+  const seritBul = h => {
+    for (let p = harita[h.parent]; p; p = harita[p.parent]) if (seritMi(p)) return p;
+    const cx = h.ax + h.w / 2, cy = h.ay + h.h / 2;
+    return seritler.filter(s => cx >= s.ax && cx <= s.ax + s.w && cy >= s.ay && cy <= s.ay + s.h).sort((a, b) => a.w * a.h - b.w * b.h)[0];
+  };
+  const konum = (a, b) => (a.ay - b.ay) || (a.ax - b.ax);
+  const sira = [], gor = new Set();
+  const adaylar = [...adimHucreleri.filter(h => !giren(h.id).length).sort(konum), ...adimHucreleri.slice().sort(konum)];
+  for (const bas of adaylar) {
+    const kuyruk = [bas];
+    while (kuyruk.length) {
+      const a = kuyruk.shift(); if (gor.has(a.id)) continue; gor.add(a.id); sira.push(a);
+      for (const s of cikan(a.id).map(k => harita[k.target]).filter(s => adimSet.has(s.id)).sort(konum)) if (!gor.has(s.id)) kuyruk.push(s);
+    }
+  }
+  const no = {}; sira.forEach((h, i) => no[h.id] = i + 1);
+  const adimlar = sira.map(h => ({
+    h, no: no[h.id], metin: h.metin, tip: tip(h),
+    sorumlu: h.veri.sorumlu || seritBul(h)?.metin || '',
+    sonraki: cikan(h.id).filter(k => no[k.target]).map(k => no[k.target] + (etiket[k.id] ? ` (${etiket[k.id]})` : '')).join(', '),
+    sure: h.veri.sure || h.veri['süre'] || '', maliyet: h.veri.maliyet || '', durum: h.veri.durum || '',
+    aciklama: h.veri.aciklama || h.veri['açıklama'] || h.veri.dokuman || '',
+  }));
+  return { adimlar, kenarSayisi: kenarlar.length, seritler };
+}
+const sayiOku = v => { const n = parseFloat(String(v ?? '').replace(/\./g, '').replace(',', '.')); return isNaN(n) ? 0 : n; };
+function raporHesapla(akis) {
+  const say = f => akis.adimlar.reduce((m, a) => { const k = f(a) || '—'; m[k] = (m[k] || 0) + 1; return m; }, {});
+  return {
+    adim: akis.adimlar.length, baglanti: akis.kenarSayisi, karar: akis.adimlar.filter(a => a.tip === 'Karar').length,
+    sure: akis.adimlar.reduce((t, a) => t + sayiOku(a.sure), 0), maliyet: akis.adimlar.reduce((t, a) => t + sayiOku(a.maliyet), 0),
+    tip: say(a => a.tip), sorumlu: say(a => a.sorumlu), durum: say(a => a.durum),
+  };
+}
+
+// ---------- araçlar: çizgi atlama, şekil verileri, durum renkleri ----------
+async function modeliDegistir(fn, mesaj) {
+  try {
+    const sayfalar = await sayfalariOku(await guncelXml());
+    let n = 0; for (const s of sayfalar) n += fn(s.gm) || 0;
+    guncelle(sayfalariYaz(sayfalar)); ac(acikId);
+    durum(mesaj(n));
+  } catch (e) { alert(e.message); }
+}
+function atlamaAyarla(gm, tur) {
+  let n = 0;
+  for (const h of hucreleriOku(gm).liste) if (h.edge) {
+    if (tur) { h.stil.jumpStyle = tur; h.stil.jumpSize = '8'; } else { delete h.stil.jumpStyle; delete h.stil.jumpSize; }
+    h.c.setAttribute('style', stilYaz(h.stil)); n++;
+  }
+  return n;
+}
+function veriAlanlariEkle(gm) {
+  let n = 0;
+  for (const a of akisOku(gm).adimlar) {
+    const h = a.h; let el = h.el;
+    if (!h.sar) { // <mxCell> → <object label=… sorumlu=…><mxCell/></object> (draw.io "Veriyi düzenle" biçimi)
+      el = gm.ownerDocument.createElement('object');
+      el.setAttribute('label', h.deger); el.setAttribute('id', h.id);
+      h.c.removeAttribute('value'); h.c.removeAttribute('id');
+      h.c.parentNode.insertBefore(el, h.c); el.appendChild(h.c);
+    }
+    for (const [k, v] of [['sorumlu', a.sorumlu], ['sure', ''], ['maliyet', ''], ['durum', ''], ['aciklama', '']]) if (!el.hasAttribute(k)) el.setAttribute(k, v);
+    n++;
+  }
+  return n;
+}
+const DURUM_RENK = [[/tamam|bitti|onaylandı|kapandı/i, '#d5e8d4', '#82b366'], [/devam|sürüyor|başladı/i, '#dae8fc', '#6c8ebf'],
+  [/bekle|askıda/i, '#fff2cc', '#d6b656'], [/kritik|hata|gecik|iptal|red/i, '#f8cecc', '#b85450']];
+function durumRenkleri(gm, kaldir) {
+  let n = 0;
+  for (const a of akisOku(gm).adimlar) {
+    const s = a.h.stil;
+    if (kaldir) {
+      if (s.durumOzgun == null) continue;
+      const [f, c] = s.durumOzgun.split('|');
+      f ? s.fillColor = f : delete s.fillColor; c ? s.strokeColor = c : delete s.strokeColor; delete s.durumOzgun;
+    } else {
+      const r = DURUM_RENK.find(([re]) => re.test(a.durum)); if (!r) continue;
+      s.durumOzgun ??= (s.fillColor || '') + '|' + (s.strokeColor || '');
+      s.fillColor = r[1]; s.strokeColor = r[2];
+    }
+    a.h.c.setAttribute('style', stilYaz(s)); n++;
+  }
+  return n;
+}
+async function raporGoster() {
+  try {
+    const [s] = await sayfalariOku(await guncelXml());
+    const r = raporHesapla(akisOku(s.gm));
+    const tablo = (baslik, o) => `<table class="rapor"><tr><th>${baslik}</th><th>Adet</th></tr>${Object.entries(o).map(([k, v]) => `<tr><td>${kacis(k)}</td><td class="sayi">${v}</td></tr>`).join('')}</table>`;
+    $('#raporIc').innerHTML = `
+      <table class="rapor"><tr><th>Özet</th><th></th></tr>
+        <tr><td>Adım sayısı</td><td class="sayi">${r.adim}</td></tr><tr><td>Karar noktası</td><td class="sayi">${r.karar}</td></tr>
+        <tr><td>Bağlantı (ok) sayısı</td><td class="sayi">${r.baglanti}</td></tr>
+        <tr><td>Toplam süre (dk)</td><td class="sayi">${r.sure.toLocaleString('tr-TR')}</td></tr>
+        <tr><td>Toplam maliyet</td><td class="sayi">${r.maliyet.toLocaleString('tr-TR')}</td></tr></table>
+      ${tablo('Şekil tipi', r.tip)}${tablo('Sorumlu', r.sorumlu)}${tablo('Durum', r.durum)}
+      <p class="not">Süre, maliyet ve durum değerleri şekil verilerinden okunur (Araçlar › alanları ekle, sonra şekle sağ tık › Veriyi düzenle).</p>`;
+    $('#dRapor').showModal();
+  } catch (e) { alert(e.message); }
+}
+$('#bRaporExcel').onclick = () => { $('#dRapor').close(); disaAktar('xlsx'); };
+
+// ---------- menüler ----------
+document.querySelectorAll('.menu > button').forEach(b => b.onclick = e => {
+  e.stopPropagation(); const m = b.parentElement, acik = m.classList.contains('acik');
+  document.querySelectorAll('.menu').forEach(x => x.classList.remove('acik')); if (!acik) m.classList.add('acik');
+});
+addEventListener('click', () => document.querySelectorAll('.menu').forEach(x => x.classList.remove('acik')));
+$('#mArac').querySelector('div').onclick = e => {
+  const a = e.target.dataset.arac; if (!a) return;
+  $('#mArac').classList.remove('acik');
+  if (a.startsWith('atla-')) { const tur = { 'atla-arc': 'arc', 'atla-gap': 'gap', 'atla-yok': '' }[a]; modeliDegistir(gm => atlamaAyarla(gm, tur), n => `${n} çizgide atlama ${tur ? 'açıldı' : 'kapatıldı'}`); }
+  if (a === 'veri') modeliDegistir(veriAlanlariEkle, n => `${n} şekle veri alanı eklendi. Şekle sağ tıklayıp "Veriyi düzenle" (Ctrl+M) ile doldurun`);
+  if (a === 'renk') modeliDegistir(gm => durumRenkleri(gm, false), n => n ? `${n} şekil durumuna göre renklendirildi` : 'Durum verisi olan şekil yok (Tamamlandı / Devam ediyor / Beklemede / Kritik)');
+  if (a === 'renksil') modeliDegistir(gm => durumRenkleri(gm, true), n => `${n} şeklin rengi geri alındı`);
+  if (a === 'rapor') raporGoster();
+};
+
+// ---------- dışa aktarma ----------
 const dosyaAdi = uz => (cizimler[acikId]?.ad || 'cizim').replace(/[\\/:*?"<>|]+/g, '_') + '.' + uz;
 function indir(href, ad) { const a = document.createElement('a'); a.href = href; a.download = ad; document.body.appendChild(a); a.click(); a.remove(); }
-$('#bAktar').onclick = e => { e.stopPropagation(); $('#mAktar').classList.toggle('acik'); };
-addEventListener('click', () => $('#mAktar').classList.remove('acik'));
-$('#mAktar').querySelector('div').onclick = e => {
-  const f = e.target.dataset.aktar; if (!f) return;
-  $('#mAktar').classList.remove('acik');
-  if (f === 'drawio') {
-    const url = URL.createObjectURL(new Blob([cizimler[acikId]?.xml || model('')], { type: 'application/xml' }));
-    indir(url, dosyaAdi('drawio')); setTimeout(() => URL.revokeObjectURL(url), 1000); return;
-  }
-  bekleyenAktar = f; durum('Hazırlanıyor…');
-  // xmlpng/xmlsvg: resmin içine çizim de gömülür, draw.io'da yeniden açılıp düzenlenebilir
-  gonder({ action: 'export', format: { png: 'xmlpng', svg: 'xmlsvg', pdf: 'svg' }[f], spinKey: 'export' });
-};
-function aktarBitir(f, data) {
-  if (!data) return durum('Dışa aktarılamadı');
-  if (f !== 'pdf') { indir(data, dosyaAdi(f)); durum('İndirildi'); return; }
-  const fr = document.createElement('iframe'); fr.style.cssText = 'position:fixed;width:0;height:0;border:0';
-  fr.srcdoc = `<!doctype html><title>${kacis(cizimler[acikId]?.ad)}</title><style>@page{margin:10mm}html,body{margin:0}img{max-width:100%;max-height:100vh;display:block;margin:auto}</style><img src="${data}">`;
-  fr.onload = () => { const w = fr.contentWindow; w.onafterprint = () => setTimeout(() => fr.remove(), 100); w.focus(); w.print(); };
-  document.body.appendChild(fr);
-  durum('Yazdır penceresinde "PDF olarak kaydet"i seçin');
+function blobIndir(blob, ad) { const u = URL.createObjectURL(blob); indir(u, ad); setTimeout(() => URL.revokeObjectURL(u), 2000); }
+$('#mAktar').querySelector('div').onclick = e => { const f = e.target.dataset.aktar; if (!f) return; $('#mAktar').classList.remove('acik'); disaAktar(f); };
+async function disaAktar(f) {
+  try {
+    durum('Hazırlanıyor…');
+    if (f === 'drawio') { blobIndir(new Blob([await guncelXml() || model('')], { type: 'application/xml' }), dosyaAdi('drawio')); return durum('İndirildi'); }
+    if (f === 'vsdx') { blobIndir(await vsdxYap(await guncelXml(), cizimler[acikId]?.ad), dosyaAdi('vsdx')); return durum('Visio dosyası indirildi'); }
+    if (f === 'xlsx') {
+      const xml = await guncelXml();
+      const png = (await istek({ action: 'export', format: 'png', border: 10, spinKey: 'export' })).data;
+      blobIndir(new Blob([await excelYap(xml, png)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), dosyaAdi('xlsx'));
+      return durum('Excel indirildi');
+    }
+    // xmlpng/xmlsvg: resmin içine çizim de gömülür, draw.io'da yeniden açılıp düzenlenebilir
+    const m = await istek({ action: 'export', format: { png: 'xmlpng', svg: 'xmlsvg', pdf: 'svg' }[f], spinKey: 'export' });
+    if (!m.data) return durum('Dışa aktarılamadı');
+    if (f !== 'pdf') { indir(m.data, dosyaAdi(f)); return durum('İndirildi'); }
+    const fr = document.createElement('iframe'); fr.style.cssText = 'position:fixed;width:0;height:0;border:0';
+    fr.srcdoc = `<!doctype html><title>${kacis(cizimler[acikId]?.ad)}</title><style>@page{margin:10mm}html,body{margin:0}img{max-width:100%;max-height:100vh;display:block;margin:auto}</style><img src="${m.data}">`;
+    fr.onload = () => { const w = fr.contentWindow; w.onafterprint = () => setTimeout(() => fr.remove(), 100); w.focus(); w.print(); };
+    document.body.appendChild(fr);
+    durum('Yazdır penceresinde "PDF olarak kaydet"i seçin');
+  } catch (e) { durum(''); alert('Dışa aktarılamadı: ' + e.message); }
 }
-$('#bAc').onclick = () => $('#dosya').click();
-$('#dosya').onchange = e => {
-  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-  f.text().then(xml => {
-    if (!/<mxfile|<mxGraphModel/.test(xml)) return alert('Bu bir draw.io dosyası değil. Visio (.vsdx) için editörde Dosya › İçe aktar\'ı kullanın.');
-    olustur(f.name.replace(/\.[^.]+$/, ''), xml); durum('Dosya açıldı');
+const resimBoyutu = src => new Promise(ok => { const i = new Image(); i.onload = () => ok([i.naturalWidth, i.naturalHeight]); i.onerror = () => ok([0, 0]); i.src = src; });
+
+// ---------- Excel: antetli iş akışı formu + diyagram raporu ----------
+async function excelYap(xml, png) {
+  const ExcelJS = await kutuphane('ExcelJS');
+  const [sayfa] = await sayfalariOku(xml);
+  const akis = akisOku(sayfa.gm), r = raporHesapla(akis), a = ls.al(K.antet, {}), ad = cizimler[acikId]?.ad || '';
+  const wb = new ExcelJS.Workbook(); wb.creator = a.hazirlayan || 'Akış Şeması'; wb.created = new Date();
+  const ws = wb.addWorksheet('İş Akışı', {
+    views: [{ showGridLines: false }],
+    pageSetup: { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: '1:6',
+      margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 } },
+    headerFooter: { oddFooter: '&L' + (a.dokNo || '') + '&RSayfa &P / &N' },
   });
+  ws.columns = [6, 36, 11, 18, 16, 9, 13, 26].map(width => ({ width }));
+  const ince = { style: 'thin', color: { argb: 'FF404040' } }, kenar = { top: ince, left: ince, bottom: ince, right: ince };
+  const orta = { horizontal: 'center', vertical: 'middle', wrapText: true };
+  const yaz = (adres, deger, stil = {}) => { const c = ws.getCell(adres); c.value = deger; Object.assign(c, stil); return c; };
+  const cerceve = (r1, r2, c1, c2) => { for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) ws.getCell(r, c).border = kenar; };
+  // antet: A1:B4 logo | C1:F2 şirket | C3:F4 başlık | G-H doküman bilgileri
+  ws.mergeCells('A1:B4'); ws.mergeCells('C1:F2'); ws.mergeCells('C3:F4');
+  yaz('C1', { richText: [{ text: a.sirket || 'ŞİRKET ADI', font: { bold: true, size: 14 } }, ...(a.alt ? [{ text: '\n' + a.alt, font: { size: 9, color: { argb: 'FF555555' } } }] : [])] }, { alignment: orta });
+  yaz('C3', 'İŞ AKIŞ ŞEMASI' + (ad ? '\n' + ad : ''), { font: { bold: true, size: 12 }, alignment: orta });
+  [['Doküman No', a.dokNo || ''], ['Yayın Tarihi', new Date().toLocaleDateString('tr-TR')], ['Revizyon No', a.rev || '00'], ['Sayfa', '1']]
+    .forEach(([k, v], i) => { yaz('G' + (i + 1), k, { font: { bold: true, size: 9 }, alignment: { vertical: 'middle' } }); yaz('H' + (i + 1), v, { font: { size: 9 }, alignment: { vertical: 'middle' } }); });
+  for (let i = 1; i <= 4; i++) ws.getRow(i).height = 21;
+  cerceve(1, 4, 1, 8);
+  if (/^data:image\/(png|jpeg)/.test(a.logo || '')) {
+    const [lw, lh] = await resimBoyutu(a.logo), k = lw && lh ? Math.min(250 / lw, 100 / lh) : 1;
+    ws.addImage(wb.addImage({ base64: a.logo, extension: a.logo.includes('png') ? 'png' : 'jpeg' }), { tl: { col: 0.2, row: 0.2 }, ext: { width: lw * k || 120, height: lh * k || 60 } });
+  } else yaz('A1', 'LOGO', { alignment: orta, font: { color: { argb: 'FF999999' } } });
+  // faaliyet tablosu
+  const basliklar = ['Sıra', 'Faaliyet / Adım', 'Tip', 'Sorumlu', 'Sonraki Adım', 'Süre (dk)', 'Durum', 'Açıklama / Doküman'];
+  const bas = ws.getRow(6); bas.values = basliklar; bas.height = 30;
+  bas.eachCell(c => { c.font = { bold: true, color: { argb: 'FFFFFFFF' } }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E79' } }; c.alignment = orta; c.border = kenar; });
+  const TIP_RENK = { 'Başla': 'FFE2EFDA', 'Bitir': 'FFFCE4D6', 'Karar': 'FFFFF2CC' };
+  akis.adimlar.forEach((s, i) => {
+    const satir = ws.getRow(7 + i);
+    satir.values = [s.no, s.metin || '(adsız)', s.tip, s.sorumlu, s.sonraki, s.sure === '' ? '' : (isNaN(sayiOku(s.sure)) ? s.sure : sayiOku(s.sure)), s.durum, s.aciklama];
+    satir.eachCell({ includeEmpty: true }, (c, n) => {
+      c.border = kenar; c.alignment = { vertical: 'top', wrapText: true, horizontal: [1, 3, 6].includes(n) ? 'center' : 'left' };
+      if (TIP_RENK[s.tip]) c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: TIP_RENK[s.tip] } };
+    });
+  });
+  let satir = 7 + akis.adimlar.length + 1;
+  // şema resmi
+  if (png) {
+    const [pw, ph] = await resimBoyutu(png), k = pw ? Math.min(1, 860 / pw) : 1, w = pw * k, h = ph * k;
+    yaz('A' + satir, 'AKIŞ ŞEMASI', { font: { bold: true } }); satir++;
+    if (w && h) { ws.addImage(wb.addImage({ base64: png, extension: 'png' }), { tl: { col: 0, row: satir - 1 }, ext: { width: w, height: h } }); satir += Math.ceil(h / 20) + 1; }
+  }
+  // imza alanı
+  [['A', 'B', 'Hazırlayan', a.hazirlayan || ''], ['C', 'E', 'Kontrol Eden', ''], ['F', 'H', 'Onaylayan', '']].forEach(([c1, c2, k, v]) => {
+    ws.mergeCells(`${c1}${satir}:${c2}${satir}`); ws.mergeCells(`${c1}${satir + 1}:${c2}${satir + 1}`);
+    yaz(c1 + satir, k, { font: { bold: true }, alignment: orta, fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } } });
+    yaz(c1 + (satir + 1), v + '\n\nİmza / Tarih:', { alignment: { vertical: 'top', wrapText: true }, font: { size: 9 } });
+  });
+  ws.getRow(satir + 1).height = 55; cerceve(satir, satir + 1, 1, 8);
+  // rapor sayfası (Visio "Diyagram raporu" karşılığı)
+  const wr = wb.addWorksheet('Rapor', { views: [{ showGridLines: false }] });
+  wr.columns = [{ width: 30 }, { width: 14 }];
+  const ekle = (k, v, kalin) => { const rw = wr.addRow([k, v]); rw.eachCell(c => { c.border = kenar; if (kalin) { c.font = { bold: true }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } }; } }); };
+  wr.addRow([(a.sirket ? a.sirket + ' – ' : '') + 'Diyagram Raporu: ' + ad]).font = { bold: true, size: 13 }; wr.addRow([]);
+  ekle('Özet', '', true); ekle('Adım sayısı', r.adim); ekle('Karar noktası', r.karar); ekle('Bağlantı (ok) sayısı', r.baglanti); ekle('Toplam süre (dk)', r.sure); ekle('Toplam maliyet', r.maliyet);
+  for (const [b, o] of [['Şekil tipi', r.tip], ['Sorumlu', r.sorumlu], ['Durum', r.durum]]) { wr.addRow([]); ekle(b, 'Adet', true); Object.entries(o).forEach(([k, v]) => ekle(k, v)); }
+  return wb.xlsx.writeBuffer();
+}
+
+// ---------- Visio (.vsdx) yazıcı ----------
+// draw.io'nun kendi VSDX dışa aktarması yalnızca Atlassian sürümünde açık; bu yüzden burada üretiliyor.
+const XMLB = '<?xml version="1.0" encoding="utf-8" standalone="yes"?>\n';
+const VNS = 'http://schemas.microsoft.com/office/visio/2012/main', RNS = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+const PRN = 'http://schemas.openxmlformats.org/package/2006/relationships', VREL = 'http://schemas.microsoft.com/visio/2010/relationships/';
+const xe = s => String(s ?? '').replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const yv = n => +(+n).toFixed(6);
+const hc = (n, v, f, u) => `<Cell N="${n}" V="${typeof v === 'number' ? yv(v) : xe(v)}"${f ? ` F="${f}"` : ''}${u ? ` U="${u}"` : ''}/>`;
+const PX = 100; // draw.io'da 100 px = 1 inç (A4 = 827 × 1169 px)
+const vRenk = v => /^#[0-9a-f]{6}$/i.test(v || '') ? v.toUpperCase() : /^#[0-9a-f]{3}$/i.test(v || '') ? ('#' + v.slice(1).replace(/./g, c => c + c)).toUpperCase() : null;
+const CIZGILER = { // birim kare içinde köşeler (Visio'da y yukarı doğru)
+  dikdortgen: [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]],
+  eskenar: [[0.5, 0], [1, 0.5], [0.5, 1], [0, 0.5], [0.5, 0]],
+  paralel: [[0, 0], [0.8, 0], [1, 1], [0.2, 1], [0, 0]],
+  altigen: [[0.25, 0], [0.75, 0], [1, 0.5], [0.75, 1], [0.25, 1], [0, 0.5], [0.25, 0]],
+  ucgen: [[0, 0], [1, 0.5], [0, 1], [0, 0]],
+  ok: [[0, 0.3], [0.65, 0.3], [0.65, 0], [1, 0.5], [0.65, 1], [0.65, 0.7], [0, 0.7], [0, 0.3]],
+  ucak: [[0, 0], [0.8, 0], [1, 0.5], [0.8, 1], [0, 1], [0.2, 0.5], [0, 0]],
+  belge: [[0, 0.12], [0, 1], [1, 1], [1, 0.12], [0.75, 0.02], [0.5, 0.12], [0.25, 0.22], [0, 0.12]],
+};
+function cizgiSec(st) {
+  const ad = (st.shape || st._sekil || '').toLowerCase();
+  if (/ellipse|circle/.test(ad)) return 'elips';
+  if (/rhombus|decision/.test(ad)) return 'eskenar';
+  if (/parallelogram|data/.test(ad)) return 'paralel';
+  if (/hexagon|preparation/.test(ad)) return 'altigen';
+  if (/triangle|extract/.test(ad)) return 'ucgen';
+  if (/singlearrow|flexarrow/.test(ad)) return 'ok';
+  if (/step|chevron/.test(ad)) return 'ucak';
+  if (/document/.test(ad)) return 'belge';
+  return 'dikdortgen';
+}
+const VSDX_BELGE = `<VisioDocument xmlns="${VNS}" xmlns:r="${RNS}" xml:space="preserve">
+<DocumentSettings TopPage="0" DefaultTextStyle="0" DefaultLineStyle="0" DefaultFillStyle="0" DefaultGuideStyle="0"><GlueSettings>9</GlueSettings><SnapSettings>65847</SnapSettings><SnapExtensions>34</SnapExtensions><SnapAngles/><DynamicGridEnabled>1</DynamicGridEnabled><ProtectStyles>0</ProtectStyles><ProtectShapes>0</ProtectShapes><ProtectMasters>0</ProtectMasters><ProtectBkgnds>0</ProtectBkgnds></DocumentSettings>
+<Colors><ColorEntry IX="0" RGB="#000000"/><ColorEntry IX="1" RGB="#FFFFFF"/></Colors>
+<FaceNames><FaceName NameU="Calibri" UnicodeRanges="-536859905 -1073732485 9 0" CharSets="536871423 0" Panose="2 15 5 2 2 2 4 3 2 4" Flags="325"/></FaceNames>
+<StyleSheets><StyleSheet ID="0" NameU="No Style" IsCustomNameU="1" Name="No Style" IsCustomName="1">
+${hc('EnableLineProps', 1)}${hc('EnableFillProps', 1)}${hc('EnableTextProps', 1)}${hc('HideForApply', 0)}
+${hc('LineWeight', 0.01041666666666667)}${hc('LineColor', '#000000')}${hc('LinePattern', 1)}${hc('Rounding', 0)}${hc('EndArrowSize', 2)}${hc('BeginArrow', 0)}${hc('EndArrow', 0)}${hc('LineCap', 0)}${hc('BeginArrowSize', 2)}${hc('LineColorTrans', 0)}
+${hc('FillForegnd', '#FFFFFF')}${hc('FillBkgnd', '#000000')}${hc('FillPattern', 1)}${hc('ShdwForegnd', '#000000')}${hc('ShdwPattern', 0)}${hc('FillForegndTrans', 0)}${hc('FillBkgndTrans', 0)}
+${hc('LeftMargin', 0.05555555555555555)}${hc('RightMargin', 0.05555555555555555)}${hc('TopMargin', 0.05555555555555555)}${hc('BottomMargin', 0.05555555555555555)}${hc('VerticalAlign', 1)}${hc('TextBkgnd', 0)}${hc('DefaultTabStop', 0.5)}${hc('TextDirection', 0)}
+<Section N="Character"><Row IX="0">${hc('Font', 'Calibri')}${hc('Color', '#000000')}${hc('Style', 0)}${hc('Case', 0)}${hc('Pos', 0)}${hc('FontScale', 1)}${hc('Size', 0.1666666666666667)}${hc('Letterspace', 0)}</Row></Section>
+<Section N="Paragraph"><Row IX="0">${hc('IndFirst', 0)}${hc('IndLeft', 0)}${hc('IndRight', 0)}${hc('SpLine', -1.2)}${hc('SpBefore', 0)}${hc('SpAfter', 0)}${hc('HorzAlign', 1)}${hc('Bullet', 0)}</Row></Section>
+</StyleSheet></StyleSheets></VisioDocument>`;
+function kenarNokta(K, p) {
+  if (p.x > K.x && p.x < K.x + K.w) return { x: p.x, y: p.y < K.cy ? K.y : K.y + K.h };
+  if (p.y > K.y && p.y < K.y + K.h) return { x: p.x < K.cx ? K.x : K.x + K.w, y: p.y };
+  const dx = p.x - K.cx, dy = p.y - K.cy, t = Math.min(dx ? K.w / 2 / Math.abs(dx) : Infinity, dy ? K.h / 2 / Math.abs(dy) : Infinity);
+  return isFinite(t) ? { x: K.cx + dx * t, y: K.cy + dy * t } : { x: K.cx, y: K.cy };
+}
+// bağlayıcının kırılma noktaları (mutlak px); draw.io rotayı çizerken hesaplar, burada dik açılı yaklaşık rota üretilir
+function rota(e, harita) {
+  const kutu = v => v && v.vertex ? { x: v.ax, y: v.ay, w: v.w, h: v.h, cx: v.ax + v.w / 2, cy: v.ay + v.h / 2 } : null;
+  const S = kutu(harita[e.source]), T = kutu(harita[e.target]), st = e.stil;
+  const ara = e.noktalar.map(p => ({ x: p.x + e.ox, y: p.y + e.oy }));
+  let b = S ? (st.exitX != null ? { x: S.x + +st.exitX * S.w, y: S.y + +st.exitY * S.h } : null) : e.kaynakNokta && { x: e.kaynakNokta.x + e.ox, y: e.kaynakNokta.y + e.oy };
+  let son = T ? (st.entryX != null ? { x: T.x + +st.entryX * T.w, y: T.y + +st.entryY * T.h } : null) : e.hedefNokta && { x: e.hedefNokta.x + e.ox, y: e.hedefNokta.y + e.oy };
+  if (!ara.length && S && T && !b && !son) {
+    const x1 = Math.max(S.x, T.x), x2 = Math.min(S.x + S.w, T.x + T.w), y1 = Math.max(S.y, T.y), y2 = Math.min(S.y + S.h, T.y + T.h);
+    if (x1 < x2) { const x = (x1 + x2) / 2, as = T.cy > S.cy; b = { x, y: as ? S.y + S.h : S.y }; son = { x, y: as ? T.y : T.y + T.h }; }
+    else if (y1 < y2) { const y = (y1 + y2) / 2, sg = T.cx > S.cx; b = { x: sg ? S.x + S.w : S.x, y }; son = { x: sg ? T.x : T.x + T.w, y }; }
+    else if (Math.abs(T.cy - S.cy) >= Math.abs(T.cx - S.cx)) {
+      const as = T.cy > S.cy; b = { x: S.cx, y: as ? S.y + S.h : S.y }; son = { x: T.cx, y: as ? T.y : T.y + T.h };
+      const my = (b.y + son.y) / 2; ara.push({ x: b.x, y: my }, { x: son.x, y: my });
+    } else {
+      const sg = T.cx > S.cx; b = { x: sg ? S.x + S.w : S.x, y: S.cy }; son = { x: sg ? T.x : T.x + T.w, y: T.cy };
+      const mx = (b.x + son.x) / 2; ara.push({ x: mx, y: b.y }, { x: mx, y: son.y });
+    }
+  } else {
+    const ilk = ara[0] || son || (T && { x: T.cx, y: T.cy }), sonOnce = ara[ara.length - 1] || b || (S && { x: S.cx, y: S.cy });
+    if (!b && S && ilk) b = kenarNokta(S, ilk);
+    if (!son && T && sonOnce) son = kenarNokta(T, sonOnce);
+    if (!ara.length && b && son && b.x !== son.x && b.y !== son.y) { const my = (b.y + son.y) / 2; ara.push({ x: b.x, y: my }, { x: son.x, y: my }); }
+  }
+  return [b, ...ara, son].filter(Boolean);
+}
+function vsdxSayfa(gm) {
+  const { liste, harita } = hucreleriOku(gm);
+  const katmanlar = liste.filter(h => h.parent === '0');
+  const katmanNo = h => { let p = h; while (p && p.parent !== '0') p = harita[p.parent]; return p ? katmanlar.indexOf(p) : 0; };
+  const etiket = {};
+  for (const h of liste) if (h.vertex && harita[h.parent]?.edge && h.metin) etiket[h.parent] = [etiket[h.parent], h.metin].filter(Boolean).join(' ');
+  const sekiller = liste.filter(h => h.vertex && h.parent !== '0' && h.id !== '0' && !harita[h.parent]?.edge && h.stil._sekil !== 'group' && h.w > 0 && h.h > 0);
+  const kenarlar = liste.filter(h => h.edge);
+  let gen = +(gm.getAttribute('pageWidth') || 827), yuk = +(gm.getAttribute('pageHeight') || 1169);
+  for (const h of sekiller) { gen = Math.max(gen, h.ax + h.w + 20); yuk = Math.max(yuk, h.ay + h.h + 20); }
+  const PH = yuk / PX, X = px => px / PX, Y = py => PH - py / PX;
+  const no = {}; let sayac = 1;
+  for (const h of liste) if (sekiller.includes(h) || kenarlar.includes(h)) no[h.id] = sayac++;
+  const veriBolumu = veri => {
+    const satirlar = Object.entries(veri).map(([k, v], i) => `<Row N="Row_${i + 1}">${hc('Label', k)}${hc('Type', 0)}${hc('Value', v, null, 'STR')}</Row>`).join('');
+    return satirlar ? `<Section N="Property">${satirlar}</Section>` : '';
+  };
+  const yaziBolumu = st => {
+    const c = vRenk(st.fontColor), boy = +(st.fontSize || 12), stil = +(st.fontStyle || 0) & 7;
+    return `<Section N="Character"><Row IX="0">${c ? hc('Color', c) : ''}${hc('Size', boy * 0.75 / 72, null, 'PT')}${hc('Style', stil)}</Row></Section>` +
+      `<Section N="Paragraph"><Row IX="0">${hc('HorzAlign', { left: 0, center: 1, right: 2 }[st.align] ?? 1)}</Row></Section>`;
+  };
+  const cizgiHucreleri = (st, metinMi) => {
+    const dolgu = vRenk(st.fillColor), kalem = vRenk(st.strokeColor);
+    const dolguYok = st.fillColor === 'none' || (metinMi && !dolgu), kalemYok = st.strokeColor === 'none' || (metinMi && !kalem);
+    return [dolguYok ? hc('FillPattern', 0) : hc('FillForegnd', dolgu || '#FFFFFF'), kalemYok ? hc('LinePattern', 0) : hc('LineColor', kalem || '#000000'),
+      kalemYok ? '' : hc('LineWeight', (+(st.strokeWidth || 1)) * 0.75 / 72, null, 'PT'), !kalemYok && st.dashed === '1' ? hc('LinePattern', 2) : ''].join('');
+  };
+  let sekilXml = '';
+  for (const h of liste) {
+    if (!no[h.id]) continue;
+    const st = h.stil, id = no[h.id], ortak = hc('LayerMember', katmanNo(h)) + (h.gorunur ? '' : hc('Visible', 0));
+    if (h.vertex) {
+      const W = X(h.w), H = h.h / PX, metinMi = st._sekil === 'text' || st.text != null || st._sekil === 'label', tur = cizgiSec(st);
+      let hucreler = hc('PinX', X(h.ax + h.w / 2)) + hc('PinY', Y(h.ay + h.h / 2)) + hc('Width', W) + hc('Height', H) +
+        hc('LocPinX', W / 2, 'Width*0.5') + hc('LocPinY', H / 2, 'Height*0.5') + hc('Angle', -(+(st.rotation || 0)) * Math.PI / 180) +
+        cizgiHucreleri(st, metinMi) + hc('VerticalAlign', { top: 0, middle: 1, bottom: 2 }[st.verticalAlign] ?? 1) + ortak;
+      if (st.rounded === '1' && tur === 'dikdortgen') hucreler += hc('Rounding', Math.min(W, H) * (+(st.arcSize || 15)) / 100);
+      let ekGeo = '';
+      if (seritMi(h)) { // şerit başlığı: yazı başlık bandında, bant çizgisi
+        const bant = +(st.startSize || 23) / PX, dikey = st.horizontal === '0';
+        hucreler += dikey
+          ? hc('TxtPinX', bant / 2) + hc('TxtPinY', H / 2) + hc('TxtWidth', H) + hc('TxtHeight', bant) + hc('TxtLocPinX', H / 2) + hc('TxtLocPinY', bant / 2) + hc('TxtAngle', Math.PI / 2)
+          : hc('TxtPinX', W / 2) + hc('TxtPinY', H - bant / 2) + hc('TxtWidth', W) + hc('TxtHeight', bant) + hc('TxtLocPinX', W / 2) + hc('TxtLocPinY', bant / 2);
+        const [a1, a2] = dikey ? [[bant, 0], [bant, H]] : [[0, H - bant], [W, H - bant]];
+        ekGeo = `<Section N="Geometry" IX="1">${hc('NoFill', 1)}<Row T="MoveTo" IX="1">${hc('X', a1[0])}${hc('Y', a1[1])}</Row><Row T="LineTo" IX="2">${hc('X', a2[0])}${hc('Y', a2[1])}</Row></Section>`;
+      }
+      const geo = tur === 'elips'
+        ? `<Row T="Ellipse" IX="1">${hc('X', W / 2, 'Width*0.5')}${hc('Y', H / 2, 'Height*0.5')}${hc('A', W, 'Width*1')}${hc('B', H / 2, 'Height*0.5')}${hc('C', W / 2, 'Width*0.5')}${hc('D', H, 'Height*1')}</Row>`
+        : CIZGILER[tur].map(([x, y], i) => `<Row T="${i ? 'LineTo' : 'MoveTo'}" IX="${i + 1}">${hc('X', W * x, `Width*${x}`)}${hc('Y', H * y, `Height*${y}`)}</Row>`).join('');
+      sekilXml += `<Shape ID="${id}" Type="Shape" LineStyle="0" FillStyle="0" TextStyle="0">${hucreler}${veriBolumu(h.veri)}${yaziBolumu(st)}` +
+        `<Section N="Geometry" IX="0">${hc('NoFill', 0)}${hc('NoLine', 0)}${hc('NoShow', 0)}${hc('NoSnap', 0)}${geo}</Section>${ekGeo}<Text>${xe(h.metin)}</Text></Shape>`;
+    } else {
+      const P = rota(h, harita).map(p => ({ x: X(p.x), y: Y(p.y) }));
+      if (P.length < 2) continue;
+      const B = P[0], E = P[P.length - 1], W = E.x - B.x, H = E.y - B.y;
+      const atla = st.jumpStyle === 'arc' ? hc('ConLineJumpCode', 2) + hc('ConLineJumpStyle', 1) : st.jumpStyle === 'gap' ? hc('ConLineJumpCode', 2) + hc('ConLineJumpStyle', 2) : hc('ConLineJumpCode', 1);
+      const hucreler = hc('PinX', (B.x + E.x) / 2, 'GUARD((BeginX+EndX)/2)') + hc('PinY', (B.y + E.y) / 2, 'GUARD((BeginY+EndY)/2)') +
+        hc('Width', W, 'GUARD(EndX-BeginX)') + hc('Height', H, 'GUARD(EndY-BeginY)') + hc('LocPinX', W / 2, 'GUARD(Width*0.5)') + hc('LocPinY', H / 2, 'GUARD(Height*0.5)') +
+        hc('BeginX', B.x) + hc('BeginY', B.y) + hc('EndX', E.x) + hc('EndY', E.y) + hc('ObjType', 2) + hc('ShapeRouteStyle', 1) +
+        hc('LineColor', vRenk(st.strokeColor) || '#000000') + hc('LineWeight', (+(st.strokeWidth || 1)) * 0.75 / 72, null, 'PT') + (st.dashed === '1' ? hc('LinePattern', 2) : '') +
+        hc('BeginArrow', st.startArrow && st.startArrow !== 'none' ? 13 : 0) + hc('EndArrow', st.endArrow === 'none' ? 0 : 13) + atla + ortak;
+      const geo = P.map((p, i) => `<Row T="${i ? 'LineTo' : 'MoveTo'}" IX="${i + 1}">${hc('X', p.x - B.x)}${hc('Y', p.y - B.y)}</Row>`).join('');
+      const metin = [h.metin, etiket[h.id]].filter(Boolean).join(' ');
+      // etiket: yolun ortasında, yatay ve sabit boyutlu (bağlayıcının yönünden etkilenmesin)
+      let kalan = P.slice(1).reduce((t, q, i) => t + Math.hypot(q.x - P[i].x, q.y - P[i].y), 0) / 2, orta = B;
+      for (let i = 1; i < P.length; i++) {
+        const l = Math.hypot(P[i].x - P[i - 1].x, P[i].y - P[i - 1].y);
+        if (l >= kalan) { const t = l ? kalan / l : 0; orta = { x: P[i - 1].x + (P[i].x - P[i - 1].x) * t, y: P[i - 1].y + (P[i].y - P[i - 1].y) * t }; break; }
+        kalan -= l;
+      }
+      const tw = Math.max(0.4, metin.length * 0.075);
+      const yaziKutusu = metin ? hc('TxtPinX', orta.x - B.x) + hc('TxtPinY', orta.y - B.y) + hc('TxtWidth', tw) + hc('TxtHeight', 0.22) + hc('TxtLocPinX', tw / 2) + hc('TxtLocPinY', 0.11) + hc('TxtAngle', 0) + hc('TextBkgnd', '#FFFFFF') : '';
+      sekilXml += `<Shape ID="${id}" Type="Shape" LineStyle="0" FillStyle="0" TextStyle="0">${hucreler}${yaziKutusu}${veriBolumu(h.veri)}${yaziBolumu(st)}` +
+        `<Section N="Geometry" IX="0">${hc('NoFill', 1)}${hc('NoLine', 0)}${hc('NoShow', 0)}${hc('NoSnap', 0)}${geo}</Section>${metin ? `<Text>${xe(metin)}</Text>` : ''}</Shape>`;
+    }
+  }
+  // dinamik yapıştırma (Glue to Shape): şekil taşınınca Visio bağlayıcıyı yeniden yönlendirir
+  const baglar = kenarlar.filter(e => no[e.id]).flatMap(e => [
+    no[e.source] ? `<Connect FromSheet="${no[e.id]}" FromCell="BeginX" FromPart="9" ToSheet="${no[e.source]}" ToCell="PinX" ToPart="3"/>` : '',
+    no[e.target] ? `<Connect FromSheet="${no[e.id]}" FromCell="EndX" FromPart="12" ToSheet="${no[e.target]}" ToCell="PinX" ToPart="3"/>` : '']).join('');
+  const katmanBolumu = katmanlar.length > 1 ? `<Section N="Layer">${katmanlar.map((k, i) => `<Row IX="${i}">${hc('Name', k.metin || `Katman ${i + 1}`)}${hc('Color', 255)}${hc('Status', 0)}${hc('Visible', k.gorunur ? 1 : 0)}${hc('Print', 1)}${hc('Active', 0)}${hc('Lock', k.stil.locked === '1' ? 1 : 0)}${hc('Snap', 1)}${hc('Glue', 1)}${hc('NameUniv', k.metin || `Layer ${i + 1}`)}${hc('ColorTrans', 0)}</Row>`).join('')}</Section>` : '';
+  return {
+    sayfaHucreleri: hc('PageWidth', gen / PX) + hc('PageHeight', PH) + hc('ShdwOffsetX', 0.125) + hc('ShdwOffsetY', -0.125) + hc('PageScale', 1, null, 'IN_F') + hc('DrawingScale', 1, null, 'IN_F') +
+      hc('DrawingSizeType', 0) + hc('DrawingScaleType', 0) + hc('InhibitSnap', 0) + hc('UIVisibility', 0) + hc('ShdwType', 0) + hc('LineJumpCode', 1) + hc('LineJumpStyle', 0) + hc('PageShapeSplit', 1) + katmanBolumu,
+    icerik: `<PageContents xmlns="${VNS}" xmlns:r="${RNS}" xml:space="preserve"><Shapes>${sekilXml}</Shapes>${baglar ? `<Connects>${baglar}</Connects>` : ''}</PageContents>`,
+  };
+}
+async function vsdxYap(xml, baslik) {
+  const JSZip = await kutuphane('JSZip');
+  const sayfalar = await sayfalariOku(xml), icerik = sayfalar.map(s => vsdxSayfa(s.gm)), z = new JSZip();
+  z.file('[Content_Types].xml', XMLB + `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/visio/document.xml" ContentType="application/vnd.ms-visio.drawing.main+xml"/><Override PartName="/visio/pages/pages.xml" ContentType="application/vnd.ms-visio.pages+xml"/>${sayfalar.map((_, i) => `<Override PartName="/visio/pages/page${i + 1}.xml" ContentType="application/vnd.ms-visio.page+xml"/>`).join('')}<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/></Types>`);
+  z.file('_rels/.rels', XMLB + `<Relationships xmlns="${PRN}"><Relationship Id="rId1" Type="${VREL}document" Target="visio/document.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>`);
+  z.file('docProps/core.xml', XMLB + `<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${xe(baslik)}</dc:title><dc:creator>Akış Şeması</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">${new Date().toISOString().slice(0, 19)}Z</dcterms:created></cp:coreProperties>`);
+  z.file('docProps/app.xml', XMLB + `<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Microsoft Visio</Application><AppVersion>15.0000</AppVersion></Properties>`);
+  z.file('visio/document.xml', XMLB + VSDX_BELGE);
+  z.file('visio/_rels/document.xml.rels', XMLB + `<Relationships xmlns="${PRN}"><Relationship Id="rId1" Type="${VREL}pages" Target="pages/pages.xml"/></Relationships>`);
+  z.file('visio/pages/pages.xml', XMLB + `<Pages xmlns="${VNS}" xmlns:r="${RNS}" xml:space="preserve">${sayfalar.map((s, i) => `<Page ID="${i}" NameU="${xe(s.ad)}" Name="${xe(s.ad)}"><PageSheet LineStyle="0" FillStyle="0" TextStyle="0">${icerik[i].sayfaHucreleri}</PageSheet><Rel r:id="rId${i + 1}"/></Page>`).join('')}</Pages>`);
+  z.file('visio/pages/_rels/pages.xml.rels', XMLB + `<Relationships xmlns="${PRN}">${sayfalar.map((_, i) => `<Relationship Id="rId${i + 1}" Type="${VREL}page" Target="page${i + 1}.xml"/>`).join('')}</Relationships>`);
+  icerik.forEach((p, i) => z.file(`visio/pages/page${i + 1}.xml`, XMLB + p.icerik));
+  return z.generateAsync({ type: 'blob', mimeType: 'application/vnd.ms-visio.drawing', compression: 'DEFLATE' });
+}
+
+// ---------- dosya açma: draw.io ve Visio ----------
+const base64Oku = f => new Promise((ok, hata) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1]); r.onerror = () => hata(r.error); r.readAsDataURL(f); });
+$('#bAc').onclick = () => $('#dosya').click();
+$('#dosya').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  const ad = f.name.replace(/\.[^.]+$/, '');
+  if (/\.vsdx?$/i.test(f.name)) { // draw.io'nun Visio içe aktarıcısı (embed "load" mesajı Visio verisini kabul eder)
+    const id = yeniId(); cizimler[id] = { ad, xml: '', guncel: Date.now() };
+    visioBekliyor = true; ac(id, 'data:application/vnd.visio;base64,' + await base64Oku(f)); durum('Visio dosyası dönüştürülüyor…');
+    return;
+  }
+  const xml = await f.text();
+  if (!/<mxfile|<mxGraphModel/.test(xml)) return alert('Bu dosya açılamadı. Desteklenen: .drawio, .xml, .vsdx, .vsd. Fotoğraf, Excel ve PDF için ✨ Yapay zekâ düğmesini kullanın.');
+  olustur(ad, xml); durum('Dosya açıldı');
+};
+
+// ---------- yapay zekâ (Google Gemini; anahtar kullanıcının tarayıcısında) ----------
+K.yz = 'akis-yz';
+const YZ_MODEL = 'gemini-flash-latest';
+const YZ_SEMA = {
+  type: 'OBJECT',
+  properties: {
+    baslik: { type: 'STRING' },
+    adimlar: { type: 'ARRAY', items: { type: 'OBJECT', properties: {
+      id: { type: 'STRING' }, metin: { type: 'STRING' },
+      tip: { type: 'STRING', enum: ['basla', 'bitir', 'islem', 'karar', 'belge', 'veri', 'alt_surec'] },
+      sorumlu: { type: 'STRING' }, sure: { type: 'STRING' }, aciklama: { type: 'STRING' },
+    }, required: ['id', 'metin', 'tip'] } },
+    baglantilar: { type: 'ARRAY', items: { type: 'OBJECT', properties: {
+      kaynak: { type: 'STRING' }, hedef: { type: 'STRING' }, etiket: { type: 'STRING' },
+    }, required: ['kaynak', 'hedef'] } },
+  },
+  required: ['adimlar', 'baglantilar'],
+};
+const YZ_TALIMAT = `Sen deneyimli bir iş analisti ve süreç akış şeması uzmanısın. Verilen görselden, Excel içeriğinden, PDF'ten veya metinden iş akışını çıkar.
+- Her faaliyet/kutu bir adımdır. Metni kaynaktaki dilde ve yazıldığı gibi koru; metinden üretiyorsan kısa, fiille biten adımlar yaz ("Talebi onayla").
+- tip: başlangıç için basla, bitiş için bitir, evet/hayır sorusu veya eşkenar dörtgen için karar, form/doküman için belge, veri girişi/çıkışı için veri, başka bir süreci çağıran adım için alt_surec, diğerleri islem.
+- Kulvar (swimlane), sütun/satır başlığı ya da "Sorumlu" bilgisi varsa adımın sorumlu alanına yaz. Süre veya açıklama varsa ekle.
+- Okları baglantilar listesine yaz. Karar adımlarından çıkan her dalın etiketini (Evet/Hayır, Uygun/Uygun değil vb.) etiket alanına yaz; geri dönen döngüleri de dahil et.
+- Başla ve Bitir adımı yoksa ekle; bağlantısız adım bırakma. id'ler kısa ve benzersiz olsun (a1, a2 …).`;
+async function gemini(parcalar) {
+  const a = ls.al(K.yz, {});
+  if (!a.key) throw new Error('Önce "Ayarlar" sekmesinden Gemini API anahtarını girin.');
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(a.model || YZ_MODEL)}:generateContent`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': a.key },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: YZ_TALIMAT }] },
+      contents: [{ role: 'user', parts: parcalar }],
+      generationConfig: { temperature: 0.2, responseMimeType: 'application/json', responseSchema: YZ_SEMA },
+    }),
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error?.message || 'Gemini hatası: ' + r.status);
+  const t = j.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('');
+  if (!t) throw new Error('Gemini boş cevap döndü' + (j.candidates?.[0]?.finishReason ? ' (' + j.candidates[0].finishReason + ')' : ''));
+  return JSON.parse(t);
+}
+const yerelAd = (el, ad) => el.getElementsByTagNameNS('*', ad)[0];
+async function excelParcalari(dosya) {
+  const JSZip = await kutuphane('JSZip'), z = await JSZip.loadAsync(dosya), metin = [];
+  const oku = async ad => z.file(ad) ? xmlCoz(await z.file(ad).async('string')) : null;
+  const ss = [...((await oku('xl/sharedStrings.xml'))?.getElementsByTagNameNS('*', 'si') || [])].map(si => si.textContent);
+  for (const ad of Object.keys(z.files).filter(n => /^xl\/worksheets\/sheet\d+\.xml$/.test(n)).sort()) {
+    const satirlar = [];
+    for (const row of (await oku(ad)).getElementsByTagNameNS('*', 'row')) {
+      const h = [...row.getElementsByTagNameNS('*', 'c')].map(c => {
+        const v = yerelAd(c, 'v')?.textContent ?? yerelAd(c, 't')?.textContent ?? '';
+        return c.getAttribute('t') === 's' ? ss[+v] ?? '' : v;
+      }).filter(Boolean);
+      if (h.length) satirlar.push(h.join(' | '));
+    }
+    if (satirlar.length) metin.push(`# ${ad} hücreleri\n` + satirlar.slice(0, 400).join('\n'));
+  }
+  for (const ad of Object.keys(z.files).filter(n => /^xl\/drawings\/drawing\d+\.xml$/.test(n))) {
+    const satirlar = [];
+    for (const el of (await oku(ad)).getElementsByTagName('*')) {
+      const yazi = [...el.getElementsByTagNameNS('*', 't')].map(x => x.textContent).join(' ').trim();
+      if (el.localName === 'sp') {
+        const pr = yerelAd(el, 'cNvPr'), off = yerelAd(el, 'off');
+        satirlar.push(`şekil id=${pr?.getAttribute('id')} tür=${yerelAd(el, 'prstGeom')?.getAttribute('prst') || '?'} konum=${off?.getAttribute('x')},${off?.getAttribute('y')} metin="${yazi}"`);
+      }
+      if (el.localName === 'cxnSp') satirlar.push(`ok: ${yerelAd(el, 'stCxn')?.getAttribute('id') || '?'} -> ${yerelAd(el, 'endCxn')?.getAttribute('id') || '?'}${yazi ? ` etiket="${yazi}"` : ''}`);
+    }
+    if (satirlar.length) metin.push(`# ${ad} çizim nesneleri\n` + satirlar.join('\n'));
+  }
+  const parcalar = [{ text: 'Bu Excel dosyasındaki iş akışını çıkar. Aşağıda hücre metinleri, çizim şekilleri ve oklar var; gömülü resimler ekte.\n\n' + (metin.join('\n\n').slice(0, 60000) || '(metin yok)') }];
+  for (const ad of Object.keys(z.files).filter(n => /^xl\/media\/.+\.(png|jpe?g|webp)$/i.test(n)).slice(0, 5))
+    parcalar.push({ inline_data: { mime_type: /png$/i.test(ad) ? 'image/png' : /webp$/i.test(ad) ? 'image/webp' : 'image/jpeg', data: await z.file(ad).async('base64') } });
+  return parcalar;
+}
+async function dosyaParcalari(f) {
+  if (/\.xlsx$/i.test(f.name)) return excelParcalari(f);
+  const tur = /\.pdf$/i.test(f.name) ? 'application/pdf' : f.type;
+  if (!/^image\/(png|jpeg|webp|heic|heif)$|^application\/pdf$/.test(tur)) throw new Error('Desteklenen dosyalar: PNG, JPG, WEBP, PDF, XLSX');
+  if (f.size > 15e6) throw new Error('Dosya 15 MB\'tan küçük olmalı');
+  return [{ text: 'Bu dosyadaki iş akış şemasını çıkar.' }, { inline_data: { mime_type: tur, data: await base64Oku(f) } }];
+}
+// anahtar yoksa: her satır bir adım, "?" ile biten karar, "Sorumlu: adım" biçimi kulvar
+function metindenBasit(metin) {
+  const satirlar = metin.split(/\n+/).map(s => s.replace(/^\s*(\d+[.)-]|[-*•])\s*/, '').trim()).filter(Boolean);
+  const adimlar = [{ id: 'bas', metin: 'Başla', tip: 'basla' }], baglantilar = [];
+  const bagla = hedef => { const o = adimlar[adimlar.length - 1]; baglantilar.push({ kaynak: o.id, hedef, etiket: o.tip === 'karar' ? 'Evet' : '' }); };
+  satirlar.forEach((s, i) => {
+    const m = s.match(/^([^:]{2,30}):\s+(.+)$/), id = 'a' + (i + 1);
+    bagla(id); adimlar.push({ id, metin: m ? m[2] : s, sorumlu: m ? m[1].trim() : '', tip: /\?\s*$/.test(s) ? 'karar' : 'islem' });
+  });
+  bagla('son'); adimlar.push({ id: 'son', metin: 'Bitir', tip: 'bitir' });
+  return { adimlar, baglantilar };
+}
+const YZ_STIL = {
+  basla: S.basla, bitir: S.bitir, islem: S.islem, karar: S.karar,
+  belge: 'shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#e1d5e7;strokeColor=#9673a6;',
+  veri: 'shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f5f5f5;strokeColor=#666666;',
+  alt_surec: 'shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#dae8fc;strokeColor=#6c8ebf;',
+};
+// AI/metin çıktısı → draw.io XML (seviyeli yerleşim; sorumlu varsa yatay kulvarlar)
+function akistanXml(j) {
+  const adimlar = (j.adimlar || []).filter(a => a && a.id), ids = new Set(adimlar.map(a => a.id));
+  const bag = (j.baglantilar || []).filter(b => ids.has(b.kaynak) && ids.has(b.hedef));
+  const cik = {}; bag.forEach(b => (cik[b.kaynak] ||= []).push(b.hedef));
+  const giris = new Set(bag.map(b => b.hedef));
+  const baslar = [...adimlar.filter(a => a.tip === 'basla' || !giris.has(a.id)), ...adimlar];
+  const durumu = {}, geri = new Set();
+  const dfs = id => { durumu[id] = 1; for (const h of cik[id] || []) { if (durumu[h] === 1) geri.add(id + '>' + h); else if (!durumu[h]) dfs(h); } durumu[id] = 2; };
+  baslar.forEach(a => durumu[a.id] || dfs(a.id));
+  const topo = [], gor = {};
+  const git = id => { if (gor[id]) return; gor[id] = 1; for (const h of cik[id] || []) if (!geri.has(id + '>' + h)) git(h); topo.push(id); };
+  baslar.forEach(a => git(a.id)); topo.reverse();
+  const sev = {}; adimlar.forEach(a => sev[a.id] = 0);
+  for (const id of topo) for (const h of cik[id] || []) if (!geri.has(id + '>' + h)) sev[h] = Math.max(sev[h], sev[id] + 1);
+  const boyut = t => t === 'karar' ? [130, 90] : t === 'basla' || t === 'bitir' ? [120, 50] : [160, 64];
+  const sorumlular = [...new Set(adimlar.map(a => (a.sorumlu || '').trim()).filter(Boolean))];
+  const etiketHtml = s => kacis(kacis(s).replace(/\n/g, '<br>'));
+  let hucreler = '';
+  const dugum = (a, x, y, parent) => {
+    const [w, h] = boyut(a.tip);
+    const veri = ['sorumlu', 'sure', 'aciklama'].map(k => `${k}="${kacis(a[k] || '')}"`).join(' ');
+    hucreler += `<object label="${etiketHtml(a.metin)}" id="n_${kacis(a.id)}" ${veri} maliyet="" durum=""><mxCell style="${YZ_STIL[a.tip] || S.islem}" vertex="1" parent="${parent}"><mxGeometry x="${x - w / 2}" y="${y - h / 2}" width="${w}" height="${h}" as="geometry"/></mxCell></object>`;
+  };
+  if (sorumlular.length >= 2) {
+    // sorumlusuz adımı (çoğunlukla Başla/Bitir) komşusunun kulvarına koy
+    const komsu = a => bag.filter(b => b.kaynak === a.id || b.hedef === a.id).map(b => adimlar.find(x => x.id === (b.kaynak === a.id ? b.hedef : b.kaynak))).find(x => x?.sorumlu?.trim());
+    const serit = {}; adimlar.forEach(a => serit[a.id] = Math.max(0, sorumlular.indexOf((a.sorumlu || komsu(a)?.sorumlu || '').trim())));
+    const SUT = 210, BANT = 40, SATIR = 110, yigin = {}, sira = {};
+    adimlar.forEach(a => { const k = serit[a.id] + '|' + sev[a.id]; sira[a.id] = yigin[k] = (yigin[k] ?? -1) + 1; });
+    const enCok = sorumlular.map((_, l) => Math.max(0, ...Object.entries(yigin).filter(([k]) => +k.split('|')[0] === l).map(([, v]) => v)) + 1);
+    const sutun = Math.max(...adimlar.map(a => sev[a.id])) + 1, gen = BANT + sutun * SUT + 20;
+    let y = 0;
+    sorumlular.forEach((s, l) => {
+      const h = Math.max(140, enCok[l] * SATIR + 30);
+      hucreler += `<mxCell id="serit${l}" value="${etiketHtml(s)}" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=${BANT};fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1"><mxGeometry x="0" y="${y}" width="${gen}" height="${h}" as="geometry"/></mxCell>`;
+      adimlar.filter(a => serit[a.id] === l).forEach(a => dugum(a, BANT + sev[a.id] * SUT + SUT / 2, 20 + sira[a.id] * SATIR + SATIR / 2, 'serit' + l));
+      y += h;
+    });
+  } else {
+    const katman = {}; adimlar.forEach(a => (katman[sev[a.id]] ||= []).push(a));
+    Object.entries(katman).forEach(([s, liste]) => liste.forEach((a, i) => dugum(a, 400 + (i - (liste.length - 1) / 2) * 220, 50 + +s * 130, '1')));
+  }
+  bag.forEach((b, i) => {
+    hucreler += `<mxCell id="k${i}" value="${etiketHtml(b.etiket || '')}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;jumpStyle=arc;jumpSize=8;" edge="1" parent="1" source="n_${kacis(b.kaynak)}" target="n_${kacis(b.hedef)}"><mxGeometry relative="1" as="geometry"/></mxCell>`;
+  });
+  return model(hucreler);
+}
+// pencere
+const yzDurum = t => $('#yzDurum').textContent = t;
+$('#bYz').onclick = () => {
+  const a = ls.al(K.yz, {}); $('#yzAnahtar').value = a.key || ''; $('#yzModel').value = a.model || YZ_MODEL;
+  yzDurum(a.key ? '' : 'Fotoğraftan ve Excel\'den okumak için önce Ayarlar sekmesinden ücretsiz Gemini API anahtarını girin.');
+  $('#dYz').showModal();
+};
+$('#dYz .sekmeler').onclick = e => {
+  const s = e.target.dataset.sekme; if (!s) return;
+  $('#dYz').querySelectorAll('[data-sekme]').forEach(b => b.classList.toggle('secili', b.dataset.sekme === s));
+  $('#dYz').querySelectorAll('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== s);
+};
+$('#bYzKaydet').onclick = () => { ls.yaz(K.yz, { key: $('#yzAnahtar').value.trim(), model: $('#yzModel').value.trim() || YZ_MODEL }); yzDurum('Kaydedildi.'); };
+async function yzCalistir(isim, is) {
+  yzDurum('Yapay zekâ çalışıyor, bu 10–60 saniye sürebilir…');
+  $('#dYz').querySelectorAll('button').forEach(b => b.disabled = true);
+  try {
+    const j = await is();
+    if (!j.adimlar?.length) throw new Error('Akış bulunamadı. Daha net bir görsel ya da açıklama deneyin.');
+    olustur(j.baslik?.trim() || isim, akistanXml(j));
+    $('#dYz').close(); durum(`${j.adimlar.length} adımlı akış oluşturuldu`);
+  } catch (e) { yzDurum('Hata: ' + e.message); }
+  finally { $('#dYz').querySelectorAll('button').forEach(b => b.disabled = false); }
+}
+const yzDosyaIsle = f => f && yzCalistir(f.name.replace(/\.[^.]+$/, ''), async () => gemini(await dosyaParcalari(f)));
+$('#birak').onclick = () => $('#yzDosya').click();
+$('#birak').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') $('#yzDosya').click(); };
+$('#yzDosya').onchange = e => { const f = e.target.files[0]; e.target.value = ''; yzDosyaIsle(f); };
+$('#birak').ondragover = e => { e.preventDefault(); $('#birak').classList.add('ustunde'); };
+$('#birak').ondragleave = () => $('#birak').classList.remove('ustunde');
+$('#birak').ondrop = e => { e.preventDefault(); $('#birak').classList.remove('ustunde'); yzDosyaIsle(e.dataTransfer.files[0]); };
+$('#bYzYazi').onclick = () => {
+  const metin = $('#yzMetin').value.trim(); if (!metin) return yzDurum('Önce iş akışını yazın.');
+  const anahtar = ls.al(K.yz, {}).key;
+  yzCalistir('Yeni iş akışı', async () => anahtar ? gemini([{ text: 'İş akışı tarifi:\n' + metin }]) : metindenBasit(metin));
 };
 
 // ---------- bulut (Supabase; anahtarlar yalnızca kullanıcının tarayıcısında) ----------
