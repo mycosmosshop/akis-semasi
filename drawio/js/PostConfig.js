@@ -175,8 +175,8 @@ window.ICON_SERVICE_PATH = null;
 
 // ---------- FlowDraw markası ----------
 // Arayüz metinlerinde draw.io adı yerine FlowDraw; Yardım menüsü sadeleştirildi.
-// Editör çekirdeği draw.io (Apache-2.0); telif ve lisans bildirimi "FlowDraw hakkında"
-// penceresinde ve drawio/LICENSE dosyasında korunur.
+// Editör çekirdeği draw.io (Apache-2.0); lisans metni drawio/LICENSE, kaynak bilgisi drawio/KAYNAK.txt
+// dosyalarında ve kaynak dosyalardaki telif başlıklarında korunur (Apache-2.0 §4 arayüzde gösterim istemez).
 (function()
 {
 	if (typeof mxResources === 'undefined' || typeof EditorUi === 'undefined')
@@ -207,15 +207,13 @@ window.ICON_SERVICE_PATH = null;
 		div.style.textAlign = 'center';
 		div.style.padding = '8px 4px';
 		div.innerHTML = '<img src="' + LOGO + '" width="72" height="72" alt="">' +
-			'<div style="font-size:20px;font-weight:700;color:#1f4e79;margin:8px 0 4px">' + AD + '</div>' +
-			'<div style="font-size:13px;color:#555;margin-bottom:14px">Akış şeması ve süreç çizim aracı</div>' +
-			'<div style="font-size:11px;color:#888;line-height:1.5">Editör çekirdeği: draw.io, © JGraph Ltd ve draw.io AG.<br>' +
-			'Apache Lisansı 2.0 ile kullanılmaktadır · <a href="LICENSE" target="_blank" rel="noopener">Lisans</a></div>';
+			'<div style="font-size:22px;font-weight:800;margin:8px 0 4px"><span style="color:#1F4E79">Flow</span><span style="color:#F0711F">Draw</span></div>' +
+			'<div style="font-size:13px;color:#555">Akış şeması ve süreç çizim aracı</div>';
 		var btn = mxUtils.button(mxResources.get('close'), function() { ui.hideDialog(); });
 		btn.className = 'geBtn gePrimaryBtn';
 		btn.style.marginTop = '16px';
 		div.appendChild(btn);
-		ui.showDialog(div, 340, 250, true, true);
+		ui.showDialog(div, 320, 220, true, true);
 	};
 
 	// "Hakkında" eylemi ve Yardım menüsü (draw.io sitesine giden arama/destek bağlantıları kaldırıldı)

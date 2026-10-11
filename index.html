@@ -11,24 +11,28 @@
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
 body{display:flex;flex-direction:column}
-header{display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid var(--cizgi);flex-wrap:wrap}
+header{display:flex;align-items:center;gap:5px;padding:6px 10px;border-bottom:1px solid var(--cizgi);flex-wrap:wrap}
 header .bosluk{flex:1}
-.marka{display:flex;align-items:center;gap:6px;font-weight:700;color:#1f4e79;margin-right:6px;letter-spacing:.2px}
-.marka img{width:24px;height:24px}
+.marka{display:flex;align-items:center;gap:7px;font-weight:800;font-size:16px;margin-right:6px;letter-spacing:.2px}
+.marka img{width:26px;height:26px}
+.flow,.draw{font-style:normal}
+.flow{color:#1F4E79}
+.draw{color:#F0711F}
 #sahne{position:relative;flex:1;display:flex}
 #yukleme{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#fff;z-index:5;transition:opacity .3s}
 #yukleme img{width:72px;height:72px;animation:nabiz 1.2s ease-in-out infinite alternate}
-#yukleme b{font-size:20px;color:#1f4e79}
+#yukleme b{font-size:24px;letter-spacing:.3px}
+#yukleme img{filter:drop-shadow(0 6px 14px rgba(31,78,121,.25))}
 #yukleme span{color:var(--soluk);font-size:13px}
 #yukleme.bitti{opacity:0;pointer-events:none}
 @keyframes nabiz{from{transform:scale(1);opacity:1}to{transform:scale(.94);opacity:.6}}
 @media (prefers-reduced-motion: reduce){#yukleme img{animation:none}}
 button,select,input{font:inherit;color:inherit}
-button{background:#fff;border:1px solid var(--cizgi);border-radius:6px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+button{background:#fff;border:1px solid var(--cizgi);border-radius:6px;padding:5px 9px;cursor:pointer;white-space:nowrap}
 button:hover{background:var(--hover)}
 button.ana{background:var(--vurgu);border-color:var(--vurgu);color:#fff}
 button.tehlike{color:#b91c1c}
-#ad{border:1px solid transparent;border-radius:6px;padding:5px 8px;font-weight:600;min-width:120px;max-width:260px;background:transparent}
+#ad{border:1px solid transparent;border-radius:6px;padding:5px 8px;font-weight:600;min-width:80px;width:16ch;max-width:260px;background:transparent}
 #ad:hover,#ad:focus{border-color:var(--cizgi);outline:none}
 #durum{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:20;background:#1f2937;color:#fff;font-size:13px;padding:6px 14px;border-radius:8px;pointer-events:none;max-width:calc(100vw - 32px)}
 #durum:empty{display:none}
@@ -48,6 +52,7 @@ iframe#ed{border:0;flex:1;width:100%;height:100%;display:block}
 .ikonlar svg .dolu{fill:currentColor}
 .menu>div small{display:block;color:var(--soluk);padding:6px 10px}
 dialog{border:1px solid var(--cizgi);border-radius:10px;padding:0;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 32px)}
+dialog.genis{width:min(780px,calc(100vw - 32px))}
 dialog::backdrop{background:rgba(0,0,0,.3)}
 dialog h2{margin:0;padding:14px 16px;font-size:16px;border-bottom:1px solid var(--cizgi);display:flex;justify-content:space-between;align-items:center}
 dialog .ic{padding:12px 16px;overflow:auto;max-height:65vh}
@@ -63,7 +68,10 @@ dialog p.not{color:var(--soluk);font-size:12px;margin:6px 0}
 .liste li .ad{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
 .liste li .ad small{display:block;color:var(--soluk);font-weight:400}
 .sablonlar{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
-.sablonlar button{height:72px;text-align:left;white-space:normal;display:flex;flex-direction:column;justify-content:space-between;position:relative}
+.sablonlar .kat{grid-column:1/-1;font-size:12px;font-weight:700;color:var(--soluk);margin-top:6px;text-transform:uppercase;letter-spacing:.4px}
+.sablonlar button{text-align:left;white-space:normal;display:flex;flex-direction:column;gap:2px;position:relative;padding:8px}
+.sablonlar button:hover{border-color:var(--vurgu)}
+.sablonlar .oniz{width:100%;height:58px;background:#f8fafc;border-radius:4px;margin-bottom:4px}
 .sablonlar button small{color:var(--soluk)}
 .sablonlar .sil{position:absolute;top:2px;right:4px;border:0;padding:0 4px;height:auto;color:#b91c1c;background:none}
 .sekmeler{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
@@ -80,7 +88,7 @@ dialog textarea{width:100%;padding:8px;border:1px solid var(--cizgi);border-radi
 </head>
 <body>
 <header>
-  <span class="marka" title="FlowDraw"><img src="logo.svg" alt="">FlowDraw</span>
+  <span class="marka" title="FlowDraw"><img src="logo.svg" alt=""><span><i class="flow">Flow</i><i class="draw">Draw</i></span></span>
   <button id="bCizimler" title="Kayıtlı çizimler">📁 Çizimlerim</button>
   <input id="ad" type="text" aria-label="Çizim adı" title="Adı değiştirmek için tıklayın">
   <button id="bYeni">＋ Yeni</button>
@@ -125,10 +133,10 @@ dialog textarea{width:100%;padding:8px;border:1px solid var(--cizgi);border-radi
   <span id="durum"></span>
   <span class="bosluk"></span>
   <button id="bAntet">🏢 Antet</button>
-  <button id="bBulut">☁ Bulut: kapalı</button>
+  <button id="bBulut" title="Buluta kayıt">☁ Bulut</button>
 </header>
 <div id="sahne">
-  <div id="yukleme"><img src="logo.svg" alt=""><b>FlowDraw</b><span>Yükleniyor…</span></div>
+  <div id="yukleme"><img src="logo.svg" alt=""><b><i class="flow">Flow</i><i class="draw">Draw</i></b><span>Yükleniyor…</span></div>
   <!-- Editör çekirdeği draw.io (Apache-2.0); bu depoda drawio/ altında barındırılır; yalnızca js/PostConfig.js sonuna eklenti eklendi (çizgi atlama menüleri) -->
 <iframe id="ed" src="drawio/index.html?embed=1&proto=json&spin=1&lang=tr&libraries=1&noExitBtn=1&saveAndExit=0&configure=1"></iframe>
 </div>
@@ -142,7 +150,7 @@ dialog textarea{width:100%;padding:8px;border:1px solid var(--cizgi);border-radi
   <div class="alt"><button data-kapat>Kapat</button></div>
 </dialog>
 
-<dialog id="dYeni">
+<dialog id="dYeni" class="genis">
   <h2>Yeni çizim <button data-kapat>✕</button></h2>
   <div class="ic">
     <label for="yeniAd">Ad</label>
@@ -196,7 +204,16 @@ dialog textarea{width:100%;padding:8px;border:1px solid var(--cizgi);border-radi
       <button data-sekme="yazi">Yazarak</button>
       <button data-sekme="ayar">Ayarlar</button>
     </div>
-    <div data-panel="dosya">
+    <label for="yzGorunum">Görünüm</label>
+    <select id="yzGorunum">
+      <option value="otomatik">Otomatik (sorumlu varsa kulvarlı)</option>
+      <option value="dikey">Dikey akış</option>
+      <option value="kulvar">Yatay kulvarlı (çapraz fonksiyonel)</option>
+      <option value="dikey-kulvar">Dikey kulvarlı</option>
+      <option value="tablo">Tablolu iş akışı (Sorumlu · Akış · Açıklama · Doküman)</option>
+      <option value="proses">Proses akış tablosu (APQP / VDA sembolleri)</option>
+    </select>
+    <div data-panel="dosya" style="margin-top:10px">
       <div id="birak" tabindex="0">Bir akış şeması fotoğrafını, Excel dosyasını (.xlsx) ya da PDF'i buraya bırakın veya <u>seçmek için tıklayın</u>.</div>
       <p class="not">Kutular, oklar ve karar dalları okunup düzenlenebilir çizime dönüştürülür. Excel'de çizilmiş şemalar ve "Sıra / Faaliyet / Sorumlu" tabloları da okunur.</p>
     </div>
@@ -419,27 +436,53 @@ function antetli() {
     kutu('onay', '<b>Onaylayan:</b>', S.metin + 'fontSize=11;', m + gen - 250, H - m - 40, 240, 30),
     `pageWidth="${W}" pageHeight="${H}" page="1"`);
 }
-function seritli() {
-  const serit = (id, ad, y) => kutu(id, ad, 'swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=30;fillColor=#f5f5f5;', 0, y, 760, 140);
-  return model(
-    serit('s1', 'Talep eden', 0) + serit('s2', 'Onaylayan', 140) + serit('s3', 'Uygulayan', 280) +
-    kutu('a1', 'Talep oluştur', S.islem, 80, 40, 130, 60) +
-    kutu('a2', 'Onay?', S.karar, 280, 165, 110, 90) +
-    kutu('a3', 'Uygula', S.islem, 470, 320, 130, 60) +
-    kutu('a4', 'Bitir', S.bitir, 640, 325, 90, 50) +
-    ok('e1', 'a1', 'a2') + ok('e2', 'a2', 'a3', 'Evet') + ok('e3', 'a3', 'a4') + ok('e4', 'a2', 'a1', 'Hayır'));
-}
+// şablon önizlemeleri (72×48 küçük resim)
+const ONIZ = (() => {
+  const sv = ic => `<svg viewBox="0 0 72 48" class="oniz">${ic}</svg>`;
+  const r = (x, y, w, h, f = '#dae8fc') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="1.5" fill="${f}" stroke="#1f4e79" stroke-width=".8"/>`;
+  const c = (x, y, rr, f = '#d5e8d4') => `<circle cx="${x}" cy="${y}" r="${rr}" fill="${f}" stroke="#1f4e79" stroke-width=".8"/>`;
+  const d = (x, y, s, f = '#fff2cc') => `<path d="M${x} ${y - s}L${x + s} ${y}L${x} ${y + s}L${x - s} ${y}Z" fill="${f}" stroke="#1f4e79" stroke-width=".8"/>`;
+  const l = (p) => `<path d="${p}" fill="none" stroke="#1f4e79" stroke-width=".8"/>`;
+  const izgara = (xs, ys) => xs.map(x => l(`M${x} ${ys[0]}V${ys.at(-1)}`)).join('') + ys.map(y => l(`M${xs[0]} ${y}H${xs.at(-1)}`)).join('');
+  const bas = (x1, x2) => `<rect x="${x1}" y="4" width="${x2 - x1}" height="6" fill="#1f4e79"/>`;
+  return {
+    bos: sv(`<rect x="8" y="6" width="56" height="36" rx="3" fill="none" stroke="#9aa" stroke-dasharray="3 2"/>`),
+    basit: sv(c(36, 8, 4) + l('M36 12V16') + r(28, 16, 16, 8) + l('M36 24V28') + d(36, 34, 6) + l('M42 34H54') + r(54, 30, 12, 8)),
+    antet: sv(`<rect x="14" y="2" width="44" height="44" fill="#fff" stroke="#1f4e79" stroke-width=".8"/>` + `<rect x="14" y="2" width="14" height="7" fill="#1f4e79"/><rect x="44" y="2" width="14" height="7" fill="#d5e8f0" stroke="#1f4e79" stroke-width=".5"/>` + r(30, 16, 12, 6) + l('M36 22V26') + d(36, 31, 5)),
+    kulvar: sv([4, 18, 32].map(y => `<rect x="4" y="${y}" width="64" height="14" fill="#f5f5f5" stroke="#888" stroke-width=".6"/><rect x="4" y="${y}" width="6" height="14" fill="#e0e0e0" stroke="#888" stroke-width=".6"/>`).join('') + r(16, 7, 12, 8) + r(34, 21, 12, 8) + r(52, 35, 12, 8) + l('M28 11H40V21M46 25H58V35')),
+    dikeyKulvar: sv([4, 26, 48].map(x => `<rect x="${x}" y="4" width="20" height="40" fill="#f5f5f5" stroke="#888" stroke-width=".6"/><rect x="${x}" y="4" width="20" height="6" fill="#e0e0e0" stroke="#888" stroke-width=".6"/>`).join('') + r(8, 14, 12, 7) + r(30, 24, 12, 7) + r(52, 34, 12, 7) + l('M20 17H36V24M42 27H58V34')),
+    tablo: sv(bas(4, 68) + izgara([4, 10, 22, 44, 68], [10, 22, 34, 46]) + r(27, 13, 12, 6) + d(33, 28, 4.5) + c(33, 40, 3, '#f8cecc') + l('M33 19V23.5M33 32.5V37')),
+    proses: sv(bas(4, 68) + izgara([4, 9, 15, 21, 27, 33, 68], [10, 22, 34, 46]) + c(12, 16, 3, '#dae8fc') + r(22, 25, 4, 4, '#fff2cc') + `<path d="M27.5 37.5h4.5v-2l3 3.5-3 3.5v-2h-4.5z" fill="#e1d5e7" stroke="#9673a6" stroke-width=".6"/>` + l('M12 19L24 25M24 29L29 37')),
+    sipoc: sv(bas(4, 68) + izgara([4, 16, 28, 44, 56, 68], [10, 46]) + r(31, 14, 10, 6) + r(31, 25, 10, 6) + r(31, 36, 10, 6) + l('M36 20V25M36 31V36')),
+    kaplumbaga: sv(r(4, 4, 20, 10, '#f5f9fd') + r(48, 4, 20, 10, '#f5f9fd') + r(4, 19, 20, 10, '#eef6ec') + r(48, 19, 20, 10, '#eef6ec') + r(4, 34, 20, 10, '#f5f9fd') + r(48, 34, 20, 10, '#f5f9fd') + `<rect x="27" y="18" width="18" height="12" rx="2" fill="#1f4e79"/>` + l('M24 24H27M45 24H48')),
+    balik: sv(l('M6 24H54') + `<path d="M54 18h12v12H54z" fill="#f8cecc" stroke="#b85450" stroke-width=".8"/>` + [16, 30, 44].map(x => l(`M${x - 8} 8L${x} 24M${x - 8} 40L${x} 24`)).join('')),
+    raci: sv(bas(4, 68) + izgara([4, 26, 37, 48, 59, 68], [10, 19, 28, 37, 46]) + [[31, 14, '#dae8fc'], [42, 23, '#f8cecc'], [53, 32, '#fff2cc'], [31, 41, '#d5e8d4']].map(([x, y, f]) => `<rect x="${x - 4}" y="${y - 3}" width="9" height="7" fill="${f}"/>`).join('')),
+    vsm: sv(r(4, 6, 12, 8, '#f5f5f5') + r(56, 6, 12, 8, '#f5f5f5') + r(14, 22, 12, 8) + r(30, 22, 12, 8) + r(46, 22, 12, 8) + l('M14 31v4h12v-4M30 31v4h12v-4M46 31v4h12v-4') + l('M8 42h6v-3h12v3h4v-3h12v3h4v-3h12v3h6')),
+  };
+})();
 const HAZIR = [
-  { ad: 'Boş sayfa', aciklama: 'Sıfırdan başla', xml: () => '' },
-  { ad: 'Basit akış', aciklama: 'Başla → işlem → karar', xml: () => model(basitAkis(0, 0)) },
-  { ad: 'Antetli A4', aciklama: 'Şirket antetli sayfa', xml: antetli },
-  { ad: 'Kulvarlı süreç', aciklama: 'Birim şeritleriyle', xml: seritli },
+  { kat: 'Temel', ad: 'Boş sayfa', aciklama: 'Sıfırdan başla', on: 'bos', xml: () => '' },
+  { kat: 'Temel', ad: 'Basit akış', aciklama: 'Başla → işlem → karar', on: 'basit', xml: () => model(basitAkis(0, 0)) },
+  { kat: 'Temel', ad: 'Antetli A4', aciklama: 'Şirket antetli sayfa', on: 'antet', xml: antetli },
+  { kat: 'Akışlar', ad: 'Yatay kulvarlı', aciklama: 'Çapraz fonksiyonel, birim şeritleri', on: 'kulvar', xml: () => akistanXml(ORNEK_SATINALMA, 'kulvar') },
+  { kat: 'Akışlar', ad: 'Dikey kulvarlı', aciklama: 'Birimler sütun olarak', on: 'dikeyKulvar', xml: () => akistanXml(ORNEK_SATINALMA, 'dikey-kulvar') },
+  { kat: 'Tablolu', ad: 'Tablolu iş akışı', aciklama: 'Sorumlu · Akış · Açıklama · Doküman (ISO)', on: 'tablo', xml: () => akistanXml(ORNEK_SATINALMA, 'tablo') },
+  { kat: 'Tablolu', ad: 'Proses akış tablosu', aciklama: 'APQP / VDA sembolleri, karakteristikler', on: 'proses', xml: () => akistanXml(ORNEK_PROSES, 'proses') },
+  { kat: 'Tablolu', ad: 'SIPOC', aciklama: 'Tedarikçi · Girdi · Süreç · Çıktı · Müşteri', on: 'sipoc', xml: () => sipoc() },
+  { kat: 'Tablolu', ad: 'RACI matrisi', aciklama: 'Kim yapar, kim onaylar', on: 'raci', xml: () => raci() },
+  { kat: 'Kalite araçları', ad: 'Kaplumbağa', aciklama: 'Süreç analizi (IATF / ISO)', on: 'kaplumbaga', xml: () => kaplumbaga() },
+  { kat: 'Kalite araçları', ad: 'Balık kılçığı', aciklama: 'Neden-sonuç (6M)', on: 'balik', xml: () => balikKilcigi() },
+  { kat: 'Lean', ad: 'Değer akışı (VSM)', aciklama: 'Proses kutuları, stok, zaman çizgisi', on: 'vsm', xml: () => degerAkisi() },
 ];
 function sablonlariCiz() {
   const kendi = ls.al(K.sablon, []);
+  const kartlar = (liste, f) => liste.map(f).join('');
+  const kategoriler = [...new Set(HAZIR.map(h => h.kat))];
   $('#sablonlar').innerHTML =
-    HAZIR.map((s, i) => `<button data-hazir="${i}"><b>${s.ad}</b><small>${s.aciklama}</small></button>`).join('') +
-    kendi.map((s, i) => `<button data-kendi="${i}"><b>${kacis(s.ad)}</b><small>Şablonum</small><span class="sil" data-silsablon="${i}" title="Şablonu sil">✕</span></button>`).join('');
+    kategoriler.map(k => `<div class="kat">${k}</div>` + kartlar(HAZIR.map((s, i) => [s, i]).filter(([s]) => s.kat === k),
+      ([s, i]) => `<button data-hazir="${i}" title="${kacis(s.aciklama)}">${ONIZ[s.on] || ''}<b>${s.ad}</b><small>${s.aciklama}</small></button>`)).join('') +
+    (kendi.length ? '<div class="kat">Şablonlarım</div>' + kartlar(kendi.map((s, i) => [s, i]),
+      ([s, i]) => `<button data-kendi="${i}">${ONIZ.bos}<b>${kacis(s.ad)}</b><small>Şablonum</small><span class="sil" data-silsablon="${i}" title="Şablonu sil">✕</span></button>`) : '');
 }
 $('#bYeni').onclick = () => { $('#yeniAd').value = ''; sablonlariCiz(); $('#dYeni').showModal(); $('#yeniAd').focus(); };
 $('#sablonlar').onclick = e => {
@@ -600,7 +643,7 @@ function akisOku(gm) {
   const bagli = new Set(kenarlar.flatMap(k => [k.source, k.target]));
   const seritler = liste.filter(h => h.vertex && seritMi(h));
   const adimHucreleri = liste.filter(h => h.vertex && !katman(h) && !seritMi(h) && !harita[h.parent]?.edge &&
-    h.stil._sekil !== 'text' && h.stil._sekil !== 'group' && h.stil.antet !== '1' && h.stil.shape !== 'image' && (h.metin || bagli.has(h.id)));
+    h.stil._sekil !== 'text' && h.stil._sekil !== 'group' && h.stil.antet !== '1' && h.stil.tablo !== '1' && h.stil.shape !== 'image' && (h.metin || bagli.has(h.id)));
   const adimSet = new Set(adimHucreleri.map(h => h.id));
   const giren = id => kenarlar.filter(k => k.target === id), cikan = id => kenarlar.filter(k => k.source === id);
   const tip = h => {
@@ -630,11 +673,11 @@ function akisOku(gm) {
   }
   const no = {}; sira.forEach((h, i) => no[h.id] = i + 1);
   const adimlar = sira.map(h => ({
-    h, no: no[h.id], metin: h.metin, tip: tip(h),
+    h, no: no[h.id], metin: h.metin, tip: h.veri.tip || tip(h),
     sorumlu: h.veri.sorumlu || seritBul(h)?.metin || '',
     sonraki: cikan(h.id).filter(k => no[k.target]).map(k => no[k.target] + (etiket[k.id] ? ` (${etiket[k.id]})` : '')).join(', '),
     sure: h.veri.sure || h.veri['süre'] || '', maliyet: h.veri.maliyet || '', durum: h.veri.durum || '',
-    aciklama: h.veri.aciklama || h.veri['açıklama'] || h.veri.dokuman || '',
+    aciklama: [h.veri.aciklama || h.veri['açıklama'], h.veri.dokuman].filter(Boolean).join(' · '),
   }));
   return { adimlar, kenarSayisi: kenarlar.length, seritler };
 }
@@ -992,7 +1035,7 @@ function vsdxSayfa(gm) {
         ? `<Row T="Ellipse" IX="1">${hc('X', W / 2, 'Width*0.5')}${hc('Y', H / 2, 'Height*0.5')}${hc('A', W, 'Width*1')}${hc('B', H / 2, 'Height*0.5')}${hc('C', W / 2, 'Width*0.5')}${hc('D', H, 'Height*1')}</Row>`
         : CIZGILER[tur].map(([x, y], i) => `<Row T="${i ? 'LineTo' : 'MoveTo'}" IX="${i + 1}">${hc('X', W * x, `Width*${x}`)}${hc('Y', H * y, `Height*${y}`)}</Row>`).join('');
       sekilXml += `<Shape ID="${id}" Type="Shape" LineStyle="0" FillStyle="0" TextStyle="0">${hucreler}${veriBolumu(h.veri)}${yaziBolumu(st)}` +
-        `<Section N="Geometry" IX="0">${hc('NoFill', 0)}${hc('NoLine', 0)}${hc('NoShow', 0)}${hc('NoSnap', 0)}${geo}</Section>${ekGeo}<Text>${xe(h.metin)}</Text></Shape>`;
+        `<Section N="Geometry" IX="0">${hc('NoFill', 0)}${hc('NoLine', 0)}${hc('NoShow', 0)}${hc('NoSnap', 0)}${geo}</Section>${ekGeo}${st.noLabel === '1' ? '' : `<Text>${xe(h.metin)}</Text>`}</Shape>`;
     } else {
       const P = rota(h, harita).map(p => ({ x: X(p.x), y: Y(p.y) }));
       if (P.length < 2) continue;
@@ -1070,7 +1113,8 @@ const YZ_SEMA = {
     adimlar: { type: 'ARRAY', items: { type: 'OBJECT', properties: {
       id: { type: 'STRING' }, metin: { type: 'STRING' },
       tip: { type: 'STRING', enum: ['basla', 'bitir', 'islem', 'karar', 'belge', 'veri', 'alt_surec'] },
-      sorumlu: { type: 'STRING' }, sure: { type: 'STRING' }, aciklama: { type: 'STRING' },
+      sorumlu: { type: 'STRING' }, sure: { type: 'STRING' }, aciklama: { type: 'STRING' }, dokuman: { type: 'STRING' },
+      urunKar: { type: 'STRING' }, prosesKar: { type: 'STRING' }, ozelKar: { type: 'STRING' },
     }, required: ['id', 'metin', 'tip'] } },
     baglantilar: { type: 'ARRAY', items: { type: 'OBJECT', properties: {
       kaynak: { type: 'STRING' }, hedef: { type: 'STRING' }, etiket: { type: 'STRING' },
@@ -1082,6 +1126,7 @@ const YZ_TALIMAT = `Sen deneyimli bir iş analisti ve süreç akış şeması uz
 - Her faaliyet/kutu bir adımdır. Metni kaynaktaki dilde ve yazıldığı gibi koru; metinden üretiyorsan kısa, fiille biten adımlar yaz ("Talebi onayla").
 - tip: başlangıç için basla, bitiş için bitir, evet/hayır sorusu veya eşkenar dörtgen için karar, form/doküman için belge, veri girişi/çıkışı için veri, başka bir süreci çağıran adım için alt_surec, diğerleri islem.
 - Kulvar (swimlane), sütun/satır başlığı ya da "Sorumlu" bilgisi varsa adımın sorumlu alanına yaz. Süre veya açıklama varsa ekle.
+- İlgili doküman/form/kayıt adı varsa dokuman alanına; ürün ve proses karakteristikleri (ölçü, sıcaklık vb.) varsa urunKar/prosesKar alanlarına; özel karakteristik işareti (CC, SC vb.) varsa ozelKar alanına yaz.
 - Okları baglantilar listesine yaz. Karar adımlarından çıkan her dalın etiketini (Evet/Hayır, Uygun/Uygun değil vb.) etiket alanına yaz; geri dönen döngüleri de dahil et.
 - Başla ve Bitir adımı yoksa ekle; bağlantısız adım bırakma. id'ler kısa ve benzersiz olsun (a1, a2 …).`;
 async function gemini(parcalar) {
@@ -1199,8 +1244,9 @@ const YZ_STIL = {
   veri: 'shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f5f5f5;strokeColor=#666666;',
   alt_surec: 'shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#dae8fc;strokeColor=#6c8ebf;',
 };
-// AI/metin çıktısı → draw.io XML (seviyeli yerleşim; sorumlu varsa yatay kulvarlar)
-function akistanXml(j) {
+// AI/metin çıktısı → draw.io XML
+// gorunum: otomatik | dikey | kulvar (yatay şeritler) | dikey-kulvar | tablo (ISO tablolu iş akışı) | proses (APQP/VDA proses akış tablosu)
+function akistanXml(j, gorunum = 'otomatik') {
   const adimlar = (j.adimlar || []).filter(a => a && a.id), ids = new Set(adimlar.map(a => a.id));
   const bag = (j.baglantilar || []).filter(b => ids.has(b.kaynak) && ids.has(b.hedef));
   const cik = {}; bag.forEach(b => (cik[b.kaynak] ||= []).push(b.hedef));
@@ -1216,34 +1262,39 @@ function akistanXml(j) {
   for (const id of topo) for (const h of cik[id] || []) if (!geri.has(id + '>' + h)) sev[h] = Math.max(sev[h], sev[id] + 1);
   // yalnızca "Hayır" ile ulaşılan, çıkışı olmayan yan kutu karar kutusuyla aynı satırda dursun
   adimlar.forEach(a => { const g = bag.filter(b => b.hedef === a.id); if (g.length === 1 && !cik[a.id] && /^hayır$/i.test((g[0].etiket || '').trim())) sev[a.id] = sev[g[0].kaynak]; });
-  const boyut = t => t === 'karar' ? [130, 90] : t === 'basla' || t === 'bitir' ? [120, 50] : [160, 64];
+  // ana yol: Başla'dan "Hayır" olmayan ilk çıkışlar izlenerek
+  const ana = new Set(); let u = (adimlar.find(a => a.tip === 'basla') || adimlar[0])?.id;
+  while (u && !ana.has(u)) { ana.add(u); const k = bag.find(b => b.kaynak === u && !/^hayır$/i.test((b.etiket || '').trim()) && !geri.has(b.kaynak + '>' + b.hedef)); u = k && k.hedef; }
   const sorumlular = [...new Set(adimlar.map(a => (a.sorumlu || '').trim()).filter(Boolean))];
-  const etiketHtml = s => kacis(kacis(s).replace(/\n/g, '<br>'));
+  if (gorunum === 'otomatik') gorunum = sorumlular.length >= 2 ? 'kulvar' : 'dikey';
+  if (gorunum === 'tablo') return tabloluIsAkisi(j, adimlar, bag, ana);
+  if (gorunum === 'proses') return prosesAkisTablosu(adimlar, ana);
+
+  const boyut = t => t === 'karar' ? [130, 90] : t === 'basla' || t === 'bitir' ? [120, 50] : [160, 64];
   let hucreler = '';
-  const dugum = (a, x, y, parent) => {
-    const [w, h] = boyut(a.tip);
-    const veri = ['sorumlu', 'sure', 'aciklama'].map(k => `${k}="${kacis(a[k] || '')}"`).join(' ');
-    hucreler += `<object label="${etiketHtml(a.metin)}" id="n_${kacis(a.id)}" ${veri} maliyet="" durum=""><mxCell style="${YZ_STIL[a.tip] || S.islem}" vertex="1" parent="${parent}"><mxGeometry x="${x - w / 2}" y="${y - h / 2}" width="${w}" height="${h}" as="geometry"/></mxCell></object>`;
-  };
-  if (sorumlular.length >= 2) {
+  const dugum = (a, x, y, parent) => { const [w, h] = boyut(a.tip); hucreler += adimNesnesi(a, x - w / 2, y - h / 2, w, h, parent); };
+  if (gorunum === 'kulvar' || gorunum === 'dikey-kulvar') {
+    const yatay = gorunum === 'kulvar', seritAd = sorumlular.length ? sorumlular : ['Sorumlu'];
     // sorumlusuz adımı (çoğunlukla Başla/Bitir) komşusunun kulvarına koy
     const komsu = a => bag.filter(b => b.kaynak === a.id || b.hedef === a.id).map(b => adimlar.find(x => x.id === (b.kaynak === a.id ? b.hedef : b.kaynak))).find(x => x?.sorumlu?.trim());
-    const serit = {}; adimlar.forEach(a => serit[a.id] = Math.max(0, sorumlular.indexOf((a.sorumlu || komsu(a)?.sorumlu || '').trim())));
-    const SUT = 210, BANT = 40, SATIR = 110, yigin = {}, sira = {};
+    const serit = {}; adimlar.forEach(a => serit[a.id] = Math.max(0, seritAd.indexOf((a.sorumlu || komsu(a)?.sorumlu || '').trim())));
+    const ADIM = yatay ? 210 : 130, BANT = yatay ? 40 : 34, YIGIN = yatay ? 110 : 210, yigin = {}, sira = {};
     adimlar.forEach(a => { const k = serit[a.id] + '|' + sev[a.id]; sira[a.id] = yigin[k] = (yigin[k] ?? -1) + 1; });
-    const enCok = sorumlular.map((_, l) => Math.max(0, ...Object.entries(yigin).filter(([k]) => +k.split('|')[0] === l).map(([, v]) => v)) + 1);
-    const sutun = Math.max(...adimlar.map(a => sev[a.id])) + 1, gen = BANT + sutun * SUT + 20;
-    let y = 0;
-    sorumlular.forEach((s, l) => {
-      const h = Math.max(140, enCok[l] * SATIR + 30);
-      hucreler += `<mxCell id="serit${l}" value="${etiketHtml(s)}" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=${BANT};fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1"><mxGeometry x="0" y="${y}" width="${gen}" height="${h}" as="geometry"/></mxCell>`;
-      adimlar.filter(a => serit[a.id] === l).forEach(a => dugum(a, BANT + sev[a.id] * SUT + SUT / 2, 20 + sira[a.id] * SATIR + SATIR / 2, 'serit' + l));
-      y += h;
+    const enCok = seritAd.map((_, l) => Math.max(0, ...Object.entries(yigin).filter(([k]) => +k.split('|')[0] === l).map(([, v]) => v)) + 1);
+    const uzunluk = BANT + (Math.max(...adimlar.map(a => sev[a.id])) + 1) * ADIM + 20;
+    let konum = 0;
+    seritAd.forEach((s, l) => {
+      const kalinlik = yatay ? Math.max(140, enCok[l] * YIGIN + 30) : Math.max(220, enCok[l] * YIGIN + 10);
+      const [gx, gy, gw, gh] = yatay ? [0, konum, uzunluk, kalinlik] : [konum, 0, kalinlik, uzunluk];
+      hucreler += `<mxCell id="serit${l}" value="${etiketHtml(s)}" style="swimlane;horizontal=${yatay ? 0 : 1};whiteSpace=wrap;html=1;startSize=${BANT};fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1"><mxGeometry x="${gx}" y="${gy}" width="${gw}" height="${gh}" as="geometry"/></mxCell>`;
+      adimlar.filter(a => serit[a.id] === l).forEach(a => {
+        const boyuna = BANT + sev[a.id] * ADIM + ADIM / 2, enine = (yatay ? 20 : 5) + sira[a.id] * YIGIN + YIGIN / 2;
+        dugum(a, yatay ? boyuna : enine, yatay ? enine : boyuna, 'serit' + l);
+      });
+      konum += kalinlik;
     });
   } else {
-    // ana yol (Hayır dışındaki ilk çıkışlar) ortadaki sütunda, yan dallar sağında
-    const ana = new Set(); let u = (adimlar.find(a => a.tip === 'basla') || adimlar[0])?.id;
-    while (u && !ana.has(u)) { ana.add(u); const k = bag.find(b => b.kaynak === u && !/^hayır$/i.test((b.etiket || '').trim()) && !geri.has(b.kaynak + '>' + b.hedef)); u = k && k.hedef; }
+    // ana yol ortadaki sütunda, yan dallar sağında
     const katman = {}; adimlar.forEach(a => (katman[sev[a.id]] ||= []).push(a));
     Object.entries(katman).forEach(([s, liste]) => {
       liste.sort((x, y) => ana.has(y.id) - ana.has(x.id));
@@ -1251,15 +1302,189 @@ function akistanXml(j) {
       liste.forEach((a, i) => dugum(a, ortada ? 400 + i * 240 : 400 + (i - (liste.length - 1) / 2) * 220, 50 + +s * 130, '1'));
     });
   }
-  bag.forEach((b, i) => {
-    hucreler += `<mxCell id="k${i}" value="${etiketHtml(b.etiket || '')}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;jumpStyle=arc;jumpSize=8;" edge="1" parent="1" source="n_${kacis(b.kaynak)}" target="n_${kacis(b.hedef)}"><mxGeometry relative="1" as="geometry"/></mxCell>`;
-  });
+  bag.forEach((b, i) => hucreler += kenarXml('k' + i, 'n_' + b.kaynak, 'n_' + b.hedef, b.etiket));
   return model(hucreler);
+}
+const etiketHtml = s => kacis(kacis(s || '').replace(/\n/g, '<br>'));
+const VERI_ALAN = ['sorumlu', 'sure', 'aciklama', 'dokuman', 'urunKar', 'prosesKar', 'ozelKar'];
+// akış adımı: draw.io <object> (şekil verileri Excel/Visio'ya gider)
+function adimNesnesi(a, x, y, w, h, parent = '1', stil, ekVeri = {}) {
+  const veri = { ...Object.fromEntries(VERI_ALAN.map(k => [k, a[k] || ''])), maliyet: '', durum: '', ...ekVeri };
+  const oz = Object.entries(veri).map(([k, v]) => `${k}="${kacis(v)}"`).join(' ');
+  return `<object label="${etiketHtml(a.metin)}" id="n_${kacis(a.id)}" ${oz}><mxCell style="${stil || YZ_STIL[a.tip] || S.islem}" vertex="1" parent="${parent}"><mxGeometry x="${x}" y="${y}" width="${w}" height="${h}" as="geometry"/></mxCell></object>`;
+}
+function kenarXml(id, kaynak, hedef, etiket = '', ek = '') {
+  return `<mxCell id="${kacis(id)}" value="${etiketHtml(etiket)}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;jumpStyle=arc;jumpSize=8;${ek}" edge="1" parent="1" source="${kacis(kaynak)}" target="${kacis(hedef)}"><mxGeometry relative="1" as="geometry"/></mxCell>`;
+}
+// tablo iskeleti: başlık satırı + hücreler (tablo=1: akış adımı sayılmaz)
+function tabloIskelet(sutunlar, satirlar, ust = 0, baslikYuk = 36) {
+  const r1 = ls.al(K.antet, {}).renk1 || '#1f4e79';
+  const xs = []; let x = 0; for (const s of sutunlar) { xs.push(x); x += s.gen; }
+  let xml = '', y = ust;
+  sutunlar.forEach((s, i) => xml += kutu(`tb_b${i}`, s.ad, `tablo=1;rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fontSize=11;fontColor=#FFFFFF;fillColor=${r1};strokeColor=${r1};`, xs[i], y, s.gen, baslikYuk));
+  y += baslikYuk;
+  satirlar.forEach((r, ri) => {
+    r.y = y;
+    sutunlar.forEach((s, i) => xml += kutu(`tb_${ri}_${i}`, r.hucre[i] || '', `tablo=1;rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=${s.hiza || 'left'};spacingLeft=6;spacingRight=4;verticalAlign=middle;strokeColor=#9FB4C7;fillColor=${r.renk?.[i] || (ri % 2 ? '#F3F7FB' : '#FFFFFF')};`, xs[i], y, s.gen, r.yuk));
+    y += r.yuk;
+  });
+  return { xml, xs, gen: x, alt: y };
+}
+const tabloBaslik = (yazi, gen) => kutu('tb_ust', `<b>${kacis(yazi)}</b>`, 'tablo=1;text;html=1;align=left;verticalAlign=middle;fontSize=14;', 0, 0, gen, 30);
+// ISO tarzı tablolu iş akışı: No · Sorumlu · İş Akışı · Açıklama · Doküman/Kayıt
+function tabloluIsAkisi(j, adimlar, bag, ana) {
+  const bul = Object.fromEntries(adimlar.map(a => [a.id, a])), yan = {}, kalan = [];
+  adimlar.filter(a => !ana.has(a.id)).forEach(a => { const g = bag.find(b => b.hedef === a.id && ana.has(b.kaynak)); if (g && !yan[g.kaynak] && !cikisVar(a.id)) yan[g.kaynak] = a; else kalan.push(a); });
+  function cikisVar(id) { return bag.some(b => b.kaynak === id); }
+  const satirAdim = [...[...ana].map(id => bul[id]), ...kalan];
+  const AK = 340, sutunlar = [{ ad: 'No', gen: 44, hiza: 'center' }, { ad: 'Sorumlu', gen: 140 }, { ad: 'İş Akışı', gen: AK, hiza: 'center' }, { ad: 'Açıklama', gen: 240 }, { ad: 'Doküman / Kayıt', gen: 150 }];
+  let no = 0;
+  const satirlar = satirAdim.map(a => ({ yuk: a.tip === 'karar' ? 110 : 84, hucre: [a.tip === 'basla' || a.tip === 'bitir' ? '' : String(++no), kacis(a.sorumlu || ''), '', kacis(a.aciklama || ''), kacis(a.dokuman || '')] }));
+  const ust = j.baslik ? 36 : 0, t = tabloIskelet(sutunlar, satirlar, ust);
+  let xml = (j.baslik ? tabloBaslik(j.baslik, t.gen) : '') + t.xml;
+  const sira = {};
+  const boyut = tip => tip === 'karar' ? [140, 84] : tip === 'basla' || tip === 'bitir' ? [120, 44] : [180, 56];
+  satirAdim.forEach((a, i) => {
+    sira[a.id] = i; const r = satirlar[i], [w, h] = boyut(a.tip);
+    xml += adimNesnesi(a, t.xs[2] + 120 - w / 2, r.y + (r.yuk - h) / 2, w, h);
+    const y2 = yan[a.id];
+    if (y2) { sira[y2.id] = i; xml += adimNesnesi(y2, t.xs[2] + AK - 112, r.y + (r.yuk - 50) / 2, 102, 50, '1', (YZ_STIL[y2.tip] || S.islem) + 'fontSize=10;'); }
+  });
+  bag.forEach((b, i) => {
+    const yanDal = yan[b.kaynak]?.id === b.hedef, geriDal = sira[b.hedef] < sira[b.kaynak];
+    xml += kenarXml('k' + i, 'n_' + b.kaynak, 'n_' + b.hedef, b.etiket,
+      yanDal ? 'exitX=1;exitY=0.5;entryX=0;entryY=0.5;' : geriDal ? 'exitX=0;exitY=0.5;entryX=0;entryY=0.5;' : '');
+  });
+  return model(xml);
+}
+// APQP / VDA proses akış tablosu: sembol sütunları (Operasyon ○, Taşıma ⇨, Muayene □, Depolama ▽, Gecikme D)
+const PFD = [
+  { ad: 'Operasyon<br>○', tip: 'Operasyon', stil: 'ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#1f4e79;noLabel=1;', w: 30, h: 30 },
+  { ad: 'Taşıma<br>⇨', tip: 'Taşıma', stil: 'shape=singleArrow;whiteSpace=wrap;html=1;arrowWidth=0.5;arrowSize=0.4;fillColor=#e1d5e7;strokeColor=#9673a6;noLabel=1;', w: 38, h: 26 },
+  { ad: 'Muayene<br>□', tip: 'Muayene', stil: 'rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;noLabel=1;', w: 28, h: 28 },
+  { ad: 'Depolama<br>▽', tip: 'Depolama', stil: 'triangle;direction=south;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;noLabel=1;', w: 32, h: 28 },
+  { ad: 'Gecikme<br>D', tip: 'Gecikme', stil: 'shape=delay;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;noLabel=1;', w: 30, h: 28 },
+];
+function pfdTuru(a) {
+  const m = (a.metin || '').toLocaleLowerCase('tr-TR');
+  if (a.pfd) return Math.max(0, PFD.findIndex(p => p.tip === a.pfd));
+  if (a.tip === 'karar' || /kontrol|muayene|test|ölçüm|denetim/.test(m)) return 2;
+  if (/taşı|sevk|nakil|transfer|yükle/.test(m)) return 1;
+  if (/bekle|gecik|kür/.test(m)) return 4;
+  if (/depo|stok|ambar|giriş|kabul/.test(m)) return 3;
+  return 0;
+}
+function prosesAkisTablosu(adimlar, ana) {
+  const bul = Object.fromEntries(adimlar.map(a => [a.id, a]));
+  const liste = [...ana].map(id => bul[id]).filter(a => a.tip !== 'basla' && a.tip !== 'bitir');
+  const sutunlar = [{ ad: 'No', gen: 44, hiza: 'center' }, ...PFD.map(p => ({ ad: p.ad, gen: 64, hiza: 'center' })),
+    { ad: 'Proses Adımı', gen: 230 }, { ad: 'Ürün Karakteristiği', gen: 160 }, { ad: 'Proses Karakteristiği', gen: 160 }, { ad: 'Ö.K.', gen: 50, hiza: 'center' }];
+  const satirlar = liste.map((a, i) => ({ yuk: 56, hucre: [String((i + 1) * 10), '', '', '', '', '', kacis((a.metin || '').replace(/\s*uygun mu\?$/i, '')), kacis(a.urunKar || ''), kacis(a.prosesKar || ''), kacis(a.ozelKar || '')] }));
+  const t = tabloIskelet(sutunlar, satirlar, 0, 48);
+  let xml = t.xml;
+  liste.forEach((a, i) => {
+    const k = pfdTuru(a), p = PFD[k], r = satirlar[i];
+    xml += adimNesnesi({ ...a, metin: (a.metin || '').replace(/\s*uygun mu\?$/i, '') }, t.xs[1 + k] + (64 - p.w) / 2, r.y + (56 - p.h) / 2, p.w, p.h, '1', p.stil, { tip: p.tip });
+    if (i) xml += kenarXml('k' + i, 'n_' + liste[i - 1].id, 'n_' + a.id, '', 'exitX=0.5;exitY=1;entryX=0.5;entryY=0;');
+  });
+  return model(xml);
+}
+// ---------- hazır şablon içerikleri ----------
+const ORNEK_SATINALMA = {
+  baslik: 'Satın Alma Süreci',
+  adimlar: [
+    { id: 's', metin: 'Başla', tip: 'basla' },
+    { id: 'a1', metin: 'Satın alma talebi oluştur', tip: 'islem', sorumlu: 'Talep Eden Birim', aciklama: 'İhtiyaç, miktar ve termin belirtilir', dokuman: 'Satın Alma Talep Formu' },
+    { id: 'a2', metin: 'Talep uygun mu?', tip: 'karar', sorumlu: 'Birim Müdürü', aciklama: 'Bütçe ve ihtiyaç kontrolü' },
+    { id: 'r', metin: 'Talep sahibine iade et', tip: 'islem', sorumlu: 'Birim Müdürü' },
+    { id: 'a3', metin: 'Tedarikçilerden teklif al', tip: 'islem', sorumlu: 'Satın Alma', aciklama: 'En az 3 onaylı tedarikçiden', dokuman: 'Onaylı Tedarikçi Listesi' },
+    { id: 'a4', metin: 'Sipariş ver', tip: 'belge', sorumlu: 'Satın Alma', dokuman: 'Sipariş Formu' },
+    { id: 'a5', metin: 'Teslim al, giriş kontrolü yap', tip: 'islem', sorumlu: 'Depo / Kalite', dokuman: 'Giriş Kontrol Formu' },
+    { id: 'e', metin: 'Bitir', tip: 'bitir' }],
+  baglantilar: [{ kaynak: 's', hedef: 'a1' }, { kaynak: 'a1', hedef: 'a2' }, { kaynak: 'a2', hedef: 'a3', etiket: 'Evet' }, { kaynak: 'a2', hedef: 'r', etiket: 'Hayır' },
+    { kaynak: 'a3', hedef: 'a4' }, { kaynak: 'a4', hedef: 'a5' }, { kaynak: 'a5', hedef: 'e' }],
+};
+const ORNEK_PROSES = (() => {
+  const a = [['Hammadde kabul ve depolama', 'Depolama'], ['Giriş kontrolü', 'Muayene', 'Yoğunluk, kalınlık'], ['Kesim', 'Operasyon', 'Ölçü ±1 mm', 'Bıçak hızı'],
+    ['Ara stoğa taşıma', 'Taşıma'], ['Laminasyon', 'Operasyon', 'Yapışma mukavemeti', 'Fırın sıcaklığı', 'SC'], ['Proses kontrolü', 'Muayene', 'Görsel, ölçü'],
+    ['Soğuma için bekleme', 'Gecikme', '', 'Bekleme süresi'], ['Paketleme', 'Operasyon', 'Etiket doğruluğu'], ['Mamul depolama', 'Depolama'], ['Sevk', 'Taşıma']]
+    .map(([metin, pfd, urunKar = '', prosesKar = '', ozelKar = ''], i) => ({ id: 'p' + i, metin, pfd, tip: pfd === 'Muayene' ? 'karar' : 'islem', urunKar, prosesKar, ozelKar }));
+  return { adimlar: [{ id: 's', metin: 'Başla', tip: 'basla' }, ...a], baglantilar: [{ kaynak: 's', hedef: 'p0' }, ...a.slice(1).map((x, i) => ({ kaynak: a[i].id, hedef: x.id }))] };
+})();
+function sipoc() {
+  const satir = [['Tedarikçiler', 'Hammadde', 'Malzeme kabul', 'Onaylı stok', 'Üretim'], ['Planlama', 'Üretim planı', 'Kesim', 'Kesilmiş parça', 'Laminasyon'],
+    ['Bakım', 'Hazır makine', 'Laminasyon', 'Yarı mamul', 'Kalite'], ['Kalite', 'Kontrol planı', 'Final kontrol', 'Onaylı ürün', 'Sevkiyat'], ['Lojistik', 'Ambalaj', 'Paketleme ve sevk', 'Teslimat', 'Müşteri']];
+  const sutunlar = ['Tedarikçi (S)', 'Girdi (I)', 'Süreç (P)', 'Çıktı (O)', 'Müşteri (C)'].map((ad, i) => ({ ad, gen: i === 2 ? 220 : 170, hiza: i === 2 ? 'center' : 'left' }));
+  const satirlar = satir.map(r => ({ yuk: 70, hucre: [kacis(r[0]), kacis(r[1]), '', kacis(r[3]), kacis(r[4])] }));
+  const t = tabloIskelet(sutunlar, satirlar, 36);
+  let xml = tabloBaslik('SIPOC – Süreç Kapsamı', t.gen) + t.xml;
+  satir.forEach((r, i) => {
+    xml += adimNesnesi({ id: 'sp' + i, metin: r[2], tip: 'islem' }, t.xs[2] + 25, satirlar[i].y + 12, 170, 46);
+    if (i) xml += kenarXml('spk' + i, 'n_sp' + (i - 1), 'n_sp' + i);
+  });
+  return model(xml);
+}
+function kaplumbaga() {
+  const kutuStil = r => `rounded=1;arcSize=6;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontSize=12;fillColor=${r};strokeColor=#6c8ebf;`;
+  const k = (id, b, a, x, y, r = '#f5f9fd') => kutu(id, `<b>${b}</b><br><span style="color:#555">${a}</span>`, kutuStil(r), x, y, 230, 120);
+  let xml = k('t_neyle', 'Neyle? (Kaynaklar)', 'Makine, ekipman, malzeme, yazılım', 20, 20) +
+    k('t_kim', 'Kim ile? (Yetkinlik)', 'Sorumlular, beceri, eğitim', 560, 20) +
+    k('t_girdi', 'Girdiler', 'Müşteri talebi, malzeme, bilgi', 20, 200, '#eef6ec') +
+    k('t_cikti', 'Çıktılar', 'Ürün, kayıt, rapor', 560, 200, '#eef6ec') +
+    k('t_nasil', 'Nasıl? (Yöntem)', 'Prosedür, talimat, kontrol planı', 20, 380) +
+    k('t_olcut', 'Hangi ölçütlerle? (Performans)', 'KPI, hedef, hurda oranı, OTD', 560, 380);
+  xml += adimNesnesi({ id: 'surec', metin: 'SÜREÇ ADI\n(Sahibi: …)', tip: 'islem' }, 290, 210, 230, 100, '1', 'rounded=1;whiteSpace=wrap;html=1;fontStyle=1;fontSize=14;fillColor=#1f4e79;fontColor=#ffffff;strokeColor=#1f4e79;');
+  const ok2 = (id, a, b, ek) => `<mxCell id="${id}" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;${ek}" edge="1" parent="1" source="${a}" target="${b}"><mxGeometry relative="1" as="geometry"/></mxCell>`;
+  xml += ok2('te1', 't_girdi', 'n_surec', 'strokeWidth=3;') + ok2('te2', 'n_surec', 't_cikti', 'strokeWidth=3;') +
+    ['t_neyle', 't_kim', 't_nasil', 't_olcut'].map((id, i) => ok2('td' + i, id, 'n_surec', 'dashed=1;')).join('');
+  return model(xml);
+}
+function balikKilcigi() {
+  const cizgi = (id, x1, y1, x2, y2, ek = '') => `<mxCell id="${id}" style="endArrow=none;html=1;strokeWidth=2;strokeColor=#1f4e79;${ek}" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="${x1}" y="${y1}" as="sourcePoint"/><mxPoint x="${x2}" y="${y2}" as="targetPoint"/></mxGeometry></mxCell>`;
+  const etiket = (id, yazi, x, y) => kutu(id, `<b>${yazi}</b>`, 'rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#1f4e79;', x, y, 110, 34);
+  const neden = (id, x, y) => kutu(id, '• Neden …<br>• Neden …', 'text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#555555;', x, y, 100, 40);
+  let xml = cizgi('omurga', 40, 250, 720, 250, 'strokeWidth=4;endArrow=block;endFill=1;') +
+    kutu('etki', '<b>PROBLEM / ETKİ</b><br>…', 'rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;', 720, 210, 160, 80);
+  [['Malzeme', 'Metot', 'Makine'], ['İnsan', 'Ölçüm', 'Çevre']].forEach((grup, ust) => grup.forEach((ad, i) => {
+    const x = 220 + i * 200, y = ust ? 420 : 80;
+    xml += cizgi(`kk${ust}${i}`, x - 90, y, x, 250) + etiket(`ke${ust}${i}`, ad, x - 145, ust ? y : y - 34) + neden(`kn${ust}${i}`, x - 60, ust ? y - 110 : y + 40);
+  }));
+  return model(xml);
+}
+function raci() {
+  const roller = ['Kalite', 'Üretim', 'Satın Alma', 'Planlama', 'Yönetim'];
+  const veri = [['Tedarikçi seçimi', 'C', 'I', 'R', 'I', 'A'], ['Üretim planı', 'I', 'C', 'I', 'R', 'A'], ['Giriş kontrolü', 'R', 'I', 'C', 'I', 'A'],
+    ['Proses kontrolü', 'C', 'R', '', 'I', 'A'], ['Uygunsuzluk yönetimi', 'R', 'C', 'C', 'I', 'A'], ['Müşteri şikâyeti', 'R', 'C', 'I', 'I', 'A']];
+  const RENK = { R: '#dae8fc', A: '#f8cecc', C: '#fff2cc', I: '#d5e8d4' };
+  const sutunlar = [{ ad: 'Faaliyet', gen: 220 }, ...roller.map(ad => ({ ad, gen: 100, hiza: 'center' }))];
+  const satirlar = veri.map(r => ({ yuk: 40, hucre: r.map((v, i) => i ? `<b>${v}</b>` : kacis(v)), renk: r.map((v, i) => i && RENK[v]) }));
+  const t = tabloIskelet(sutunlar, satirlar, 36);
+  return model(tabloBaslik('RACI Sorumluluk Matrisi', t.gen) + t.xml +
+    kutu('tb_acik', '<b>R</b> Yapan · <b>A</b> Onaylayan (hesap veren) · <b>C</b> Danışılan · <b>I</b> Bilgilendirilen', 'tablo=1;text;html=1;align=left;fontSize=11;fontColor=#555555;', 0, t.alt + 8, t.gen, 24));
+}
+function degerAkisi() {
+  let xml = kutu('v_ted', '<b>Tedarikçi</b>', 'shape=mxgraph.lean_mapping.outside_sources;whiteSpace=wrap;html=1;fillColor=#f5f5f5;', 10, 20, 110, 70) +
+    kutu('v_mus', '<b>Müşteri</b>', 'shape=mxgraph.lean_mapping.outside_sources;whiteSpace=wrap;html=1;fillColor=#f5f5f5;', 830, 20, 110, 70) +
+    kutu('v_plan', '<b>Üretim Planlama</b>', 'rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;', 400, 20, 150, 50);
+  const prosesler = [['Kesim', '45 sn', '10 dk', '%95'], ['Laminasyon', '60 sn', '30 dk', '%90'], ['Paketleme', '30 sn', '5 dk', '%98']];
+  prosesler.forEach(([ad, ct, co, up], i) => {
+    const x = 170 + i * 230;
+    xml += adimNesnesi({ id: 'vp' + i, metin: ad, tip: 'islem' }, x, 150, 140, 50, '1', 'rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#dae8fc;strokeColor=#1f4e79;') +
+      kutu('vd' + i, `C/T: ${ct}<br>C/O: ${co}<br>Çalışma: ${up}`, 'tablo=1;rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=6;fontSize=11;', x, 200, 140, 64) +
+      kutu('vi' + i, 'I<br><span style="font-size:9px">… adet</span>', 'tablo=1;triangle;direction=north;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=bottom;', x - 70, 160, 46, 40);
+    if (i) xml += kenarXml('vk' + i, 'n_vp' + (i - 1), 'n_vp' + i, '', 'dashed=1;');
+  });
+  xml += kenarXml('vk0', 'v_ted', 'n_vp0', '') + kenarXml('vk9', 'n_vp2', 'v_mus', '');
+  // zaman çizgisi
+  const pts = [[150, 300], [150, 330], [240, 330], [240, 300], [380, 300], [380, 330], [470, 330], [470, 300], [610, 300], [610, 330], [700, 330], [700, 300], [760, 300]];
+  xml += `<mxCell id="v_zaman" style="endArrow=none;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="${pts[0][0]}" y="${pts[0][1]}" as="sourcePoint"/><mxPoint x="${pts.at(-1)[0]}" y="${pts.at(-1)[1]}" as="targetPoint"/><Array as="points">${pts.slice(1, -1).map(([x, y]) => `<mxPoint x="${x}" y="${y}"/>`).join('')}</Array></mxGeometry></mxCell>` +
+    kutu('v_ozet', '<b>Toplam temin süresi:</b> … gün<br><b>Katma değerli süre:</b> 135 sn', 'tablo=1;rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=6;fontSize=11;', 770, 290, 170, 50);
+  return model(xml);
 }
 // pencere
 const yzDurum = t => $('#yzDurum').textContent = t;
 $('#bYz').onclick = () => {
-  const a = ls.al(K.yz, {}); $('#yzAnahtar').value = a.key || ''; $('#yzModel').value = a.model || YZ_MODEL;
+  const a = ls.al(K.yz, {}); $('#yzAnahtar').value = a.key || ''; $('#yzModel').value = a.model || YZ_MODEL; $('#yzGorunum').value = ls.al('akis-gorunum', 'otomatik');
   yzDurum(a.key ? '' : 'Fotoğraftan ve Excel\'den okumak için önce Ayarlar sekmesinden ücretsiz Gemini API anahtarını girin.');
   $('#dYz').showModal();
 };
@@ -1267,6 +1492,7 @@ $('#dYz .sekmeler').onclick = e => {
   const s = e.target.dataset.sekme; if (!s) return;
   $('#dYz').querySelectorAll('[data-sekme]').forEach(b => b.classList.toggle('secili', b.dataset.sekme === s));
   $('#dYz').querySelectorAll('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== s);
+  $('#yzGorunum').hidden = $('label[for=yzGorunum]').hidden = s === 'ayar';
 };
 $('#bYzKaydet').onclick = () => { ls.yaz(K.yz, { key: $('#yzAnahtar').value.trim(), model: $('#yzModel').value.trim() || YZ_MODEL }); yzDurum('Kaydedildi.'); };
 async function yzCalistir(isim, is) {
@@ -1275,7 +1501,8 @@ async function yzCalistir(isim, is) {
   try {
     const j = await is();
     if (!j.adimlar?.length) throw new Error('Akış bulunamadı. Daha net bir görsel ya da açıklama deneyin.');
-    olustur(j.baslik?.trim() || isim, akistanXml(j));
+    ls.yaz('akis-gorunum', $('#yzGorunum').value);
+    olustur(j.baslik?.trim() || isim, akistanXml(j, $('#yzGorunum').value));
     $('#dYz').close(); durum(`${j.adimlar.length} adımlı akış oluşturuldu`);
   } catch (e) { yzDurum('Hata: ' + e.message); }
   finally { $('#dYz').querySelectorAll('button').forEach(b => b.disabled = false); }
@@ -1297,7 +1524,7 @@ $('#bYzYazi').onclick = () => {
 const bulut = (() => {
   let sb = null, kullanici = null, zaman = {};
   const ayar = () => ls.al(K.bulut, null);
-  const dugme = () => $('#bBulut').textContent = kullanici ? '☁ ' + kullanici.email : (ayar() ? '☁ Bulut: giriş yapın' : '☁ Bulut: kapalı');
+  const dugme = () => $('#bBulut').textContent = kullanici ? '☁ ' + kullanici.email : (ayar() ? '☁ Giriş yapın' : '☁ Bulut');
 
   async function baslat() {
     const a = ayar(); dugme(); if (!a) return;

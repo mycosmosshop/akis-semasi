@@ -1,7 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="FlowDraw">
-  <rect width="64" height="64" rx="14" fill="#1F4E79"/>
-  <rect x="19" y="8" width="26" height="13" rx="3.5" fill="#FFFFFF"/>
-  <path d="M32 21V32" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
-  <path d="M32 31L44 43L32 55L20 43Z" fill="#D5E8F0"/>
-  <path d="M6 28.5H27A5 5 0 0 1 37 28.5H58" fill="none" stroke="#7CC4F0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <defs>
+    <linearGradient id="fdZemin" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2E86DE"/>
+      <stop offset="1" stop-color="#1F4E79"/>
+    </linearGradient>
+    <linearGradient id="fdKalem" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFB347"/>
+      <stop offset="1" stop-color="#F0711F"/>
+    </linearGradient>
+  </defs>
+  <!-- Flow (mavi): işlem kutusu → akış oku → karar -->
+  <rect width="64" height="64" rx="15" fill="url(#fdZemin)"/>
+  <rect x="7" y="8" width="24" height="13" rx="3.5" fill="#FFFFFF"/>
+  <path d="M19 21V25.5" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+  <path d="M14.8 24.5L19 29L23.2 24.5Z" fill="#FFFFFF"/>
+  <path d="M19 29L28 38L19 47L10 38Z" fill="#CFE6FA"/>
+  <path d="M28 38H32" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+  <!-- Draw (turuncu): kalem akışı çizerek sürdürüyor -->
+  <path d="M32 38C37 38 35 49 41.5 47.5" fill="none" stroke="#FFB347" stroke-width="3" stroke-linecap="round"/>
+  <g transform="translate(42 47) rotate(-52)">
+    <path d="M0 0L6.5 -3.8V3.8Z" fill="#3A2A1E"/>
+    <path d="M2.4 -1.4L6.5 -3.8V3.8L2.4 1.4Z" fill="#F7D9B5"/>
+    <rect x="6.5" y="-3.8" width="16" height="7.6" fill="url(#fdKalem)"/>
+    <rect x="22.5" y="-3.8" width="3.6" height="7.6" rx="1.2" fill="#FFE0B2"/>
+  </g>
 </svg>
