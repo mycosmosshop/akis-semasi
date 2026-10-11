@@ -1,0 +1,1 @@
+draw.io 32.4.1 – https://github.com/jgraph/drawio (9034053). Apache-2.0 (LICENSE). Değişiklik: yalnızca js/PostConfig.js sonuna Akış Şeması eklentisi eklendi.
