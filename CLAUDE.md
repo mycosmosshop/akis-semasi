@@ -1,9 +1,10 @@
-# Akış Şeması
+# FlowDraw
 
-Visio benzeri akış şeması çizme aracı. Canlı: https://mycosmosshop.github.io/akis-semasi/
+Visio benzeri akış şeması çizme aracı (depo adı akis-semasi). Canlı: https://mycosmosshop.github.io/akis-semasi/
 
 - Sarmalayıcı tek dosya: `index.html`; draw.io'yu iframe'de gömülü modda (JSON protokolü) açar, üstteki çubuk sarmalayıcıya ait.
 - draw.io bu depoda `drawio/` altında barındırılır (32.4.1, jgraph/drawio `src/main/webapp`; WEB-INF, integrate.min.js, js/grapheditor, js/diagramly (Extensions.js hariç) ve .map dosyaları çıkarıldı; kaynak/sürüm `drawio/KAYNAK.txt`). Değişiklik yalnızca `drawio/js/PostConfig.js` sonunda: sağ tık menüsüne "Çizgi atlama ▸" ve satır içi Bağlantı penceresine simgeli atlama bölümleri (seçili çizgiye uygular). Güncellerken yeni webapp'i kopyala, bu bloğu PostConfig.js sonuna yeniden ekle. embed.diagrams.net'e geri dönülürse bu menüler kaybolur (orada özel eklenti yüklenmez).
+- Marka: uygulamanın adı FlowDraw; logo `logo.svg` (+ `logo-180.png`, `logo-512.png`): başlık, yükleme ekranı (`#yukleme`, init'te kalkar), favicon, `drawio/index.html` açılış logosu. `PostConfig.js` ikinci bloğu arayüz metinlerinde draw.io/diagrams.net adını FlowDraw yapar (adreslere dokunmaz), Yardım menüsünü "Klavye kısayolları + FlowDraw hakkında" ile değiştirir. Apache-2.0 gereği telif/lisans bildirimi "FlowDraw hakkında" penceresinde, `drawio/LICENSE` ve `drawio/KAYNAK.txt`'te korunur; bunları kaldırma.
 - Gerçek editörle sınama mümkün: `python3 -m http.server` ile depo kökünü sun, Playwright ile `index.html`'i aç (dış ağ gerekmez); editör nesnesi için addInitScript ile `EditorUi.prototype.createDivs`'i sarıp `window.__ui` yakala.
 - Sarmalayıcı: çoklu çizim (localStorage `akis-cizimler`), şablonlar (hazır + kullanıcının), antet (şirket adı/logo, `akis-antet`), dışa aktarma (PNG/SVG xml gömülü, PDF yazdırma, .drawio), dosyadan açma, Supabase ile isteğe bağlı bulut eşitleme (kurulum: `BULUT.md`; anahtar kullanıcının tarayıcısında).
 - Editör `configure=1` ile açılır: `compressXml:false` (sarmalayıcı XML'i okur/düzenler) ve varsayılan çizgi atlama (`jumpStyle=arc`).

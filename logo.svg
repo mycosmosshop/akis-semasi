@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="FlowDraw">
+  <rect width="64" height="64" rx="14" fill="#1F4E79"/>
+  <rect x="19" y="8" width="26" height="13" rx="3.5" fill="#FFFFFF"/>
+  <path d="M32 21V32" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+  <path d="M32 31L44 43L32 55L20 43Z" fill="#D5E8F0"/>
+  <path d="M6 28.5H27A5 5 0 0 1 37 28.5H58" fill="none" stroke="#7CC4F0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

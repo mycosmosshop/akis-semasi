@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Akış Şeması</title>
+<title>FlowDraw</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="logo-180.png">
 <style>
 :root{--bg:#fff;--fg:#1f2937;--soluk:#6b7280;--cizgi:#e5e7eb;--vurgu:#2563eb;--hover:#f3f4f6}
 *{box-sizing:border-box}
@@ -11,6 +13,16 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:14px/1.
 body{display:flex;flex-direction:column}
 header{display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid var(--cizgi);flex-wrap:wrap}
 header .bosluk{flex:1}
+.marka{display:flex;align-items:center;gap:6px;font-weight:700;color:#1f4e79;margin-right:6px;letter-spacing:.2px}
+.marka img{width:24px;height:24px}
+#sahne{position:relative;flex:1;display:flex}
+#yukleme{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#fff;z-index:5;transition:opacity .3s}
+#yukleme img{width:72px;height:72px;animation:nabiz 1.2s ease-in-out infinite alternate}
+#yukleme b{font-size:20px;color:#1f4e79}
+#yukleme span{color:var(--soluk);font-size:13px}
+#yukleme.bitti{opacity:0;pointer-events:none}
+@keyframes nabiz{from{transform:scale(1);opacity:1}to{transform:scale(.94);opacity:.6}}
+@media (prefers-reduced-motion: reduce){#yukleme img{animation:none}}
 button,select,input{font:inherit;color:inherit}
 button{background:#fff;border:1px solid var(--cizgi);border-radius:6px;padding:5px 10px;cursor:pointer;white-space:nowrap}
 button:hover{background:var(--hover)}
@@ -20,7 +32,7 @@ button.tehlike{color:#b91c1c}
 #ad:hover,#ad:focus{border-color:var(--cizgi);outline:none}
 #durum{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:20;background:#1f2937;color:#fff;font-size:13px;padding:6px 14px;border-radius:8px;pointer-events:none;max-width:calc(100vw - 32px)}
 #durum:empty{display:none}
-iframe#ed{border:0;flex:1;width:100%;display:block}
+iframe#ed{border:0;flex:1;width:100%;height:100%;display:block}
 .menu{position:relative}
 .menu>div{display:none;position:absolute;top:100%;left:0;margin-top:4px;background:#fff;border:1px solid var(--cizgi);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:4px;z-index:10;min-width:220px}
 .menu.acik>div{display:block}
@@ -68,6 +80,7 @@ dialog textarea{width:100%;padding:8px;border:1px solid var(--cizgi);border-radi
 </head>
 <body>
 <header>
+  <span class="marka" title="FlowDraw"><img src="logo.svg" alt="">FlowDraw</span>
   <button id="bCizimler" title="Kayıtlı çizimler">📁 Çizimlerim</button>
   <input id="ad" type="text" aria-label="Çizim adı" title="Adı değiştirmek için tıklayın">
   <button id="bYeni">＋ Yeni</button>
@@ -114,8 +127,11 @@ dialog textarea{width:100%;padding:8px;border:1px solid var(--cizgi);border-radi
   <button id="bAntet">🏢 Antet</button>
   <button id="bBulut">☁ Bulut: kapalı</button>
 </header>
-<!-- draw.io (Apache-2.0) bu depoda drawio/ altında barındırılır; yalnızca js/PostConfig.js sonuna eklenti eklendi (çizgi atlama menüleri) -->
+<div id="sahne">
+  <div id="yukleme"><img src="logo.svg" alt=""><b>FlowDraw</b><span>Yükleniyor…</span></div>
+  <!-- Editör çekirdeği draw.io (Apache-2.0); bu depoda drawio/ altında barındırılır; yalnızca js/PostConfig.js sonuna eklenti eklendi (çizgi atlama menüleri) -->
 <iframe id="ed" src="drawio/index.html?embed=1&proto=json&spin=1&lang=tr&libraries=1&noExitBtn=1&saveAndExit=0&configure=1"></iframe>
+</div>
 <input type="file" id="dosya" accept=".drawio,.xml,.dio,.vsdx,.vsd" hidden>
 <input type="file" id="yzDosya" accept="image/png,image/jpeg,image/webp,application/pdf,.xlsx,.pdf" hidden>
 <input type="file" id="logoDosya" accept="image/png,image/jpeg,image/svg+xml" hidden>
@@ -264,7 +280,7 @@ function ac(id, yuklenecek) {
   if (!cizimler[id]) return;
   acikId = id; kaydetDepo();
   $('#ad').value = cizimler[id].ad;
-  document.title = cizimler[id].ad + ' – Akış Şeması';
+  document.title = cizimler[id].ad + ' – FlowDraw';
   if (!hazir) return;
   yukleniyor = true;
   const c = cizimler[id];
@@ -305,6 +321,7 @@ addEventListener('message', e => {
     defaultEdgeStyle: { orthogonalLoop: '1', jettySize: 'auto', html: '1', ...bagStili(bagTercih()) },
   } });
   if (m.event === 'init') {
+    $('#yukleme').classList.add('bitti'); setTimeout(() => $('#yukleme').remove(), 400);
     hazir = true;
     if (!cizimler[acikId]) acikId = Object.keys(cizimler).sort((a, b) => cizimler[b].guncel - cizimler[a].guncel)[0];
     if (!acikId) olustur('Akış Şeması', ''); else ac(acikId);
@@ -343,7 +360,7 @@ $('#ad').onchange = () => {
   const c = cizimler[acikId]; const ad = $('#ad').value.trim();
   if (!c || !ad) { $('#ad').value = c?.ad || ''; return; }
   c.ad = ad; c.guncel = Date.now(); kaydetDepo(); bulut.gonder(acikId);
-  document.title = ad + ' – Akış Şeması'; durum('Ad değişti');
+  document.title = ad + ' – FlowDraw'; durum('Ad değişti');
 };
 $('#ad').onkeydown = e => { if (e.key === 'Enter') e.target.blur(); };
 
@@ -772,7 +789,7 @@ async function excelYap(xml, png) {
   const ExcelJS = await kutuphane('ExcelJS');
   const [sayfa] = await sayfalariOku(xml);
   const akis = akisOku(sayfa.gm), r = raporHesapla(akis), a = ls.al(K.antet, {}), ad = cizimler[acikId]?.ad || '';
-  const wb = new ExcelJS.Workbook(); wb.creator = a.hazirlayan || 'Akış Şeması'; wb.created = new Date();
+  const wb = new ExcelJS.Workbook(); wb.creator = a.hazirlayan || 'FlowDraw'; wb.created = new Date();
   const ws = wb.addWorksheet('İş Akışı', {
     views: [{ showGridLines: false }],
     pageSetup: { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: '1:6',
@@ -1017,7 +1034,7 @@ async function vsdxYap(xml, baslik) {
   const sayfalar = await sayfalariOku(xml), icerik = sayfalar.map(s => vsdxSayfa(s.gm)), z = new JSZip();
   z.file('[Content_Types].xml', XMLB + `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/visio/document.xml" ContentType="application/vnd.ms-visio.drawing.main+xml"/><Override PartName="/visio/pages/pages.xml" ContentType="application/vnd.ms-visio.pages+xml"/>${sayfalar.map((_, i) => `<Override PartName="/visio/pages/page${i + 1}.xml" ContentType="application/vnd.ms-visio.page+xml"/>`).join('')}<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/></Types>`);
   z.file('_rels/.rels', XMLB + `<Relationships xmlns="${PRN}"><Relationship Id="rId1" Type="${VREL}document" Target="visio/document.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>`);
-  z.file('docProps/core.xml', XMLB + `<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${xe(baslik)}</dc:title><dc:creator>Akış Şeması</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">${new Date().toISOString().slice(0, 19)}Z</dcterms:created></cp:coreProperties>`);
+  z.file('docProps/core.xml', XMLB + `<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${xe(baslik)}</dc:title><dc:creator>FlowDraw</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">${new Date().toISOString().slice(0, 19)}Z</dcterms:created></cp:coreProperties>`);
   z.file('docProps/app.xml', XMLB + `<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Microsoft Visio</Application><AppVersion>15.0000</AppVersion></Properties>`);
   z.file('visio/document.xml', XMLB + VSDX_BELGE);
   z.file('visio/_rels/document.xml.rels', XMLB + `<Relationships xmlns="${PRN}"><Relationship Id="rId1" Type="${VREL}pages" Target="pages/pages.xml"/></Relationships>`);

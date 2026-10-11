@@ -172,3 +172,78 @@ window.ICON_SERVICE_PATH = null;
 		};
 	}
 })();
+
+// ---------- FlowDraw markası ----------
+// Arayüz metinlerinde draw.io adı yerine FlowDraw; Yardım menüsü sadeleştirildi.
+// Editör çekirdeği draw.io (Apache-2.0); telif ve lisans bildirimi "FlowDraw hakkında"
+// penceresinde ve drawio/LICENSE dosyasında korunur.
+(function()
+{
+	if (typeof mxResources === 'undefined' || typeof EditorUi === 'undefined')
+	{
+		return;
+	}
+
+	var AD = 'FlowDraw';
+	var LOGO = '../logo.svg';
+	var metinGetir = mxResources.get;
+
+	// Bağlantı adreslerine dokunmadan yalnızca görünen addaki draw.io / diagrams.net değişir
+	mxResources.get = function()
+	{
+		var sonuc = metinGetir.apply(this, arguments);
+
+		return (typeof sonuc === 'string') ? sonuc.replace(/(^|[^\/.\w])(?:draw\.io|diagrams\.net)(?![\w\/-])/gi, '$1' + AD) : sonuc;
+	};
+
+	EditorUi.prototype.getServiceName = function()
+	{
+		return AD;
+	};
+
+	var hakkinda = function(ui)
+	{
+		var div = document.createElement('div');
+		div.style.textAlign = 'center';
+		div.style.padding = '8px 4px';
+		div.innerHTML = '<img src="' + LOGO + '" width="72" height="72" alt="">' +
+			'<div style="font-size:20px;font-weight:700;color:#1f4e79;margin:8px 0 4px">' + AD + '</div>' +
+			'<div style="font-size:13px;color:#555;margin-bottom:14px">Akış şeması ve süreç çizim aracı</div>' +
+			'<div style="font-size:11px;color:#888;line-height:1.5">Editör çekirdeği: draw.io, © JGraph Ltd ve draw.io AG.<br>' +
+			'Apache Lisansı 2.0 ile kullanılmaktadır · <a href="LICENSE" target="_blank" rel="noopener">Lisans</a></div>';
+		var btn = mxUtils.button(mxResources.get('close'), function() { ui.hideDialog(); });
+		btn.className = 'geBtn gePrimaryBtn';
+		btn.style.marginTop = '16px';
+		div.appendChild(btn);
+		ui.showDialog(div, 340, 250, true, true);
+	};
+
+	// "Hakkında" eylemi ve Yardım menüsü (draw.io sitesine giden arama/destek bağlantıları kaldırıldı)
+	var eylemKoy = Actions.prototype.put;
+
+	Actions.prototype.put = function(name, action)
+	{
+		if (name == 'about')
+		{
+			var ui = this.editorUi;
+			action = new Action(AD + ' hakkında', function() { hakkinda(ui); });
+		}
+
+		return eylemKoy.call(this, name, action);
+	};
+
+	var menuKoy = Menus.prototype.put;
+
+	Menus.prototype.put = function(name, menu)
+	{
+		if (name == 'help')
+		{
+			menu = new Menu(mxUtils.bind(this, function(m, parent)
+			{
+				this.addMenuItems(m, ['keyboardShortcuts', '-', 'about'], parent);
+			}));
+		}
+
+		return menuKoy.apply(this, arguments.length > 1 ? [name, menu] : arguments);
+	};
+})();
