@@ -24,9 +24,15 @@ iframe#ed{border:0;flex:1;width:100%;display:block}
 .menu>div{display:none;position:absolute;top:100%;left:0;margin-top:4px;background:#fff;border:1px solid var(--cizgi);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:4px;z-index:10;min-width:220px}
 .menu.acik>div{display:block}
 .menu>div button{display:block;width:100%;text-align:left;border:0}
-.menu>div .secimler{display:flex;flex-wrap:wrap;gap:4px;padding:0 6px 4px}
-.menu>div .secimler button{width:auto;border:1px solid var(--cizgi);padding:4px 8px}
-.menu>div .secimler button.secili{background:#eff6ff;border-color:var(--vurgu);color:var(--vurgu)}
+.menu>div .baslik{display:block;padding:6px 10px 0;font-size:13px}
+.menu>div hr{border:0;border-top:1px solid var(--cizgi);margin:4px 6px}
+.menu>div .ikonlar{display:grid;grid-template-columns:repeat(5,36px);gap:6px;padding:0 10px 6px}
+.menu>div .ikonlar button{width:36px;height:36px;padding:0;border:1px solid transparent;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#333}
+.menu>div .ikonlar button:hover{background:var(--hover)}
+.menu>div .ikonlar button.secili{border-color:var(--vurgu);background:#eff6ff;color:var(--vurgu)}
+.ikonlar svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ikonlar svg .ince{stroke-width:1.2;opacity:.55}
+.ikonlar svg .dolu{fill:currentColor}
 .menu>div small{display:block;color:var(--soluk);padding:6px 10px}
 dialog{border:1px solid var(--cizgi);border-radius:10px;padding:0;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 32px)}
 dialog::backdrop{background:rgba(0,0,0,.3)}
@@ -80,22 +86,16 @@ dialog textarea{width:100%;padding:8px;border:1px solid var(--cizgi);border-radi
   <div class="menu" id="mBag">
     <button id="bBag" title="Bağlantı çizgilerinin şekli ve kesişmelerde atlama">⤳ Bağlantı</button>
     <div>
-      <button data-bag="panel">☰ Seçili çizginin ayarları (Biçim paneli)</button>
-      <small>Kesişen çizgilerde atlama – tüm çizgiler</small>
-      <div class="secimler" data-grup="jumpStyle">
-        <button data-bag="arc" title="Yay">⌒ Yay</button><button data-bag="gap" title="Boşluk">┆ Boşluk</button>
-        <button data-bag="sharp" title="Köşeli">⋀ Köşeli</button><button data-bag="line" title="Çizgi">╱ Çizgi</button><button data-bag="none" title="Atlama yok">✕ Yok</button>
-      </div>
+      <b class="baslik">Bağlantı</b>
+      <small>Kesişmelerde atlama</small>
+      <div class="secimler ikonlar" data-grup="jumpStyle"><button data-bag="arc" title="Yay ile atla"><svg viewBox="0 0 28 28"><path d="M14 3V25" class="ince"/><path d="M2 16H9A5 5 0 0 1 19 16H26"/></svg></button><button data-bag="gap" title="Boşluk bırak"><svg viewBox="0 0 28 28"><path d="M14 3V25" class="ince"/><path d="M2 16H10M18 16H26"/></svg></button><button data-bag="sharp" title="Köşeli atla"><svg viewBox="0 0 28 28"><path d="M14 3V25" class="ince"/><path d="M2 16H9L14 9L19 16H26"/></svg></button><button data-bag="line" title="Köprü"><svg viewBox="0 0 28 28"><path d="M14 3V25" class="ince"/><path d="M2 16H8L10 11H18L20 16H26"/></svg></button><button data-bag="none" title="Atlama yok"><svg viewBox="0 0 28 28"><path d="M14 3V25" class="ince"/><path d="M2 16H26"/></svg></button></div>
       <small>Atlama boyutu</small>
-      <div class="secimler" data-grup="jumpSize">
-        <button data-bag="6">Küçük</button><button data-bag="10">Orta</button><button data-bag="16">Büyük</button>
-      </div>
-      <small>Bağlantı şekli – tüm çizgiler</small>
-      <div class="secimler" data-grup="sekil">
-        <button data-bag="duz" title="Düz">╱ Düz</button><button data-bag="dik" title="Dik açılı">┐ Dik açılı</button>
-        <button data-bag="yuvarlak" title="Yuvarlak köşeli">╮ Yuvarlak</button><button data-bag="egri" title="Eğri">∿ Eğri</button><button data-bag="varlik" title="Varlık ilişkisi">⊐ Varlık</button>
-      </div>
-      <small>Seçtikleriniz yeni çizgiler için de varsayılan olur (sayfa yeniden açılınca).</small>
+      <div class="secimler ikonlar" data-grup="jumpSize"><button data-bag="6" title="Küçük atlama"><svg viewBox="0 0 28 28"><path d="M14 3V25" class="ince"/><path d="M2 16H11A3 3 0 0 1 17 16H26"/></svg></button><button data-bag="10" title="Orta atlama"><svg viewBox="0 0 28 28"><path d="M14 3V25" class="ince"/><path d="M2 16H9A5 5 0 0 1 19 16H26"/></svg></button><button data-bag="16" title="Büyük atlama"><svg viewBox="0 0 28 28"><path d="M14 3V25" class="ince"/><path d="M2 16H6A8 8 0 0 1 22 16H26"/></svg></button></div>
+      <small>Bağlantı şekli</small>
+      <div class="secimler ikonlar" data-grup="sekil"><button data-bag="duz" title="Düz"><svg viewBox="0 0 28 28"><path d="M18.5 4L24 4L24 9.5" class="dolu"/><path d="M4 24L24 4"/></svg></button><button data-bag="dik" title="Dik açılı"><svg viewBox="0 0 28 28"><path d="M20 1.5L24.5 4L20 6.5" class="dolu"/><path d="M4 24H14V4H24"/></svg></button><button data-bag="yuvarlak" title="Yuvarlak köşeli"><svg viewBox="0 0 28 28"><path d="M20 1.5L24.5 4L20 6.5" class="dolu"/><path d="M4 24H10Q14 24 14 20V8Q14 4 18 4H24"/></svg></button><button data-bag="egri" title="Eğri"><svg viewBox="0 0 28 28"><path d="M20 1.5L24.5 4L20 6.5" class="dolu"/><path d="M4 24C15 24 13 4 24 4"/></svg></button><button data-bag="varlik" title="Varlık ilişkisi"><svg viewBox="0 0 28 28"><path d="M4 6H14V22H24"/></svg></button></div>
+      <hr>
+      <button data-bag="panel">☰ Yalnızca seçili çizgi için: Biçim paneli</button>
+      <small>Seçim tüm çizgilere uygulanır ve yeni çizgilerin varsayılanı olur.</small>
     </div>
   </div>
   <div class="menu" id="mArac">
