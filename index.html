@@ -24,6 +24,9 @@ iframe#ed{border:0;flex:1;width:100%;display:block}
 .menu>div{display:none;position:absolute;top:100%;left:0;margin-top:4px;background:#fff;border:1px solid var(--cizgi);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:4px;z-index:10;min-width:220px}
 .menu.acik>div{display:block}
 .menu>div button{display:block;width:100%;text-align:left;border:0}
+.menu>div .secimler{display:flex;flex-wrap:wrap;gap:4px;padding:0 6px 4px}
+.menu>div .secimler button{width:auto;border:1px solid var(--cizgi);padding:4px 8px}
+.menu>div .secimler button.secili{background:#eff6ff;border-color:var(--vurgu);color:var(--vurgu)}
 .menu>div small{display:block;color:var(--soluk);padding:6px 10px}
 dialog{border:1px solid var(--cizgi);border-radius:10px;padding:0;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 32px)}
 dialog::backdrop{background:rgba(0,0,0,.3)}
@@ -74,13 +77,30 @@ dialog textarea{width:100%;padding:8px;border:1px solid var(--cizgi);border-radi
   </div>
   <button id="bAc" title="draw.io (.drawio, .xml) veya Visio (.vsdx, .vsd) dosyası aç">📂 Aç</button>
   <button id="bYz" title="Fotoğraf, Excel, PDF ya da yazıdan akış şeması oluştur">✨ Yapay zekâ</button>
+  <div class="menu" id="mBag">
+    <button id="bBag" title="Bağlantı çizgilerinin şekli ve kesişmelerde atlama">⤳ Bağlantı</button>
+    <div>
+      <button data-bag="panel">☰ Seçili çizginin ayarları (Biçim paneli)</button>
+      <small>Kesişen çizgilerde atlama – tüm çizgiler</small>
+      <div class="secimler" data-grup="jumpStyle">
+        <button data-bag="arc" title="Yay">⌒ Yay</button><button data-bag="gap" title="Boşluk">┆ Boşluk</button>
+        <button data-bag="sharp" title="Köşeli">⋀ Köşeli</button><button data-bag="line" title="Çizgi">╱ Çizgi</button><button data-bag="none" title="Atlama yok">✕ Yok</button>
+      </div>
+      <small>Atlama boyutu</small>
+      <div class="secimler" data-grup="jumpSize">
+        <button data-bag="6">Küçük</button><button data-bag="10">Orta</button><button data-bag="16">Büyük</button>
+      </div>
+      <small>Bağlantı şekli – tüm çizgiler</small>
+      <div class="secimler" data-grup="sekil">
+        <button data-bag="duz" title="Düz">╱ Düz</button><button data-bag="dik" title="Dik açılı">┐ Dik açılı</button>
+        <button data-bag="yuvarlak" title="Yuvarlak köşeli">╮ Yuvarlak</button><button data-bag="egri" title="Eğri">∿ Eğri</button><button data-bag="varlik" title="Varlık ilişkisi">⊐ Varlık</button>
+      </div>
+      <small>Seçtikleriniz yeni çizgiler için de varsayılan olur (sayfa yeniden açılınca).</small>
+    </div>
+  </div>
   <div class="menu" id="mArac">
     <button id="bArac">🧰 Araçlar</button>
     <div>
-      <small>Çizgi atlama (kesişen çizgiler)</small>
-      <button data-arac="atla-arc">⌒ Yay ile atla</button>
-      <button data-arac="atla-gap">┆ Boşluk bırak</button>
-      <button data-arac="atla-yok">✕ Atlama yok</button>
       <small>Şekil verileri (Visio Shape Data)</small>
       <button data-arac="veri">Sorumlu / Süre / Maliyet / Durum alanlarını ekle</button>
       <button data-arac="renk">Durum renklerini uygula</button>
@@ -260,7 +280,7 @@ async function atlamaliXml(xml) {
     const sayfalar = await sayfalariOku(xml);
     let n = 0;
     for (const s of sayfalar) for (const h of hucreleriOku(s.gm).liste) if (h.edge && h.stil.jumpStyle == null) {
-      h.stil.jumpStyle = 'arc'; h.stil.jumpSize = '8'; h.c.setAttribute('style', stilYaz(h.stil)); n++;
+      const t = bagTercih(); h.stil.jumpStyle = t.jumpStyle; h.stil.jumpSize = t.jumpSize; h.c.setAttribute('style', stilYaz(h.stil)); n++;
     }
     return n ? sayfalariYaz(sayfalar) : xml;
   } catch { return xml; }
@@ -281,7 +301,7 @@ addEventListener('message', e => {
   let m; try { m = JSON.parse(e.data); } catch { return; }
   if (m.event === 'configure') gonder({ action: 'configure', config: {
     compressXml: false, // sarmalayıcı XML'i okuyup düzenleyebilsin
-    defaultEdgeStyle: { edgeStyle: 'orthogonalEdgeStyle', rounded: '0', orthogonalLoop: '1', jettySize: 'auto', html: '1', jumpStyle: 'arc', jumpSize: '8' },
+    defaultEdgeStyle: { orthogonalLoop: '1', jettySize: 'auto', html: '1', ...bagStili(bagTercih()) },
   } });
   if (m.event === 'init') {
     hazir = true;
@@ -619,14 +639,37 @@ async function modeliDegistir(fn, mesaj) {
     durum(mesaj(n));
   } catch (e) { alert(e.message); }
 }
-function atlamaAyarla(gm, tur) {
+// bağlantı tercihleri: atlama türü/boyutu ve çizgi şekli (yeni çizgilerin varsayılanı + "tüm çizgilere uygula")
+const BAG_SEKIL = {
+  duz: { edgeStyle: 'none', curved: '0', rounded: '0' },
+  dik: { edgeStyle: 'orthogonalEdgeStyle', curved: '0', rounded: '0' },
+  yuvarlak: { edgeStyle: 'orthogonalEdgeStyle', curved: '0', rounded: '1' },
+  egri: { edgeStyle: 'orthogonalEdgeStyle', curved: '1', rounded: '0' },
+  varlik: { edgeStyle: 'entityRelationEdgeStyle', curved: '0', rounded: '0' },
+};
+function bagTercih() { return { jumpStyle: 'arc', jumpSize: '10', sekil: 'dik', ...ls.al('akis-baglanti', {}) }; }
+const bagStili = t => ({ ...BAG_SEKIL[t.sekil] || BAG_SEKIL.dik, jumpStyle: t.jumpStyle, jumpSize: t.jumpSize });
+function baglantiAyarla(gm, degisen) {
   let n = 0;
-  for (const h of hucreleriOku(gm).liste) if (h.edge) {
-    h.stil.jumpStyle = tur || 'none'; if (tur) h.stil.jumpSize = '8'; else delete h.stil.jumpSize;
-    h.c.setAttribute('style', stilYaz(h.stil)); n++;
+  for (const h of hucreleriOku(gm).liste) if (h.edge && h.stil.antet !== '1') {
+    Object.assign(h.stil, degisen); h.c.setAttribute('style', stilYaz(h.stil)); n++;
   }
   return n;
 }
+function bagMenusuGuncelle() {
+  const t = bagTercih();
+  $('#mBag').querySelectorAll('.secimler').forEach(g => g.querySelectorAll('button').forEach(b => b.classList.toggle('secili', b.dataset.bag === t[g.dataset.grup])));
+}
+$('#bBag').addEventListener('click', bagMenusuGuncelle);
+$('#mBag').querySelector('div').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  e.stopPropagation();
+  if (b.dataset.bag === 'panel') { $('#mBag').classList.remove('acik'); gonder({ action: 'invokeAction', actionName: 'format' }); return durum('Sağdaki Biçim panelinde "Çizgi atlamaları" ve bağlantı ayarları seçili çizgiye uygulanır'); }
+  const grup = b.closest('.secimler')?.dataset.grup; if (!grup) return;
+  const t = { ...bagTercih(), [grup]: b.dataset.bag }; ls.yaz('akis-baglanti', t); bagMenusuGuncelle();
+  const degisen = grup === 'sekil' ? BAG_SEKIL[t.sekil] : grup === 'jumpStyle' ? { jumpStyle: t.jumpStyle, jumpSize: t.jumpSize } : { jumpSize: t.jumpSize };
+  modeliDegistir(gm => baglantiAyarla(gm, degisen), n => `${n} çizgi güncellendi`);
+};
 function veriAlanlariEkle(gm) {
   let n = 0;
   for (const a of akisOku(gm).adimlar) {
@@ -688,7 +731,6 @@ addEventListener('click', () => document.querySelectorAll('.menu').forEach(x => 
 $('#mArac').querySelector('div').onclick = e => {
   const a = e.target.dataset.arac; if (!a) return;
   $('#mArac').classList.remove('acik');
-  if (a.startsWith('atla-')) { const tur = { 'atla-arc': 'arc', 'atla-gap': 'gap', 'atla-yok': '' }[a]; modeliDegistir(gm => atlamaAyarla(gm, tur), n => `${n} çizgide atlama ${tur ? 'açıldı' : 'kapatıldı'}`); }
   if (a === 'veri') modeliDegistir(veriAlanlariEkle, n => `${n} şekle veri alanı eklendi. Şekle sağ tıklayıp "Veriyi düzenle" (Ctrl+M) ile doldurun`);
   if (a === 'renk') modeliDegistir(gm => durumRenkleri(gm, false), n => n ? `${n} şekil durumuna göre renklendirildi` : 'Durum verisi olan şekil yok (Tamamlandı / Devam ediyor / Beklemede / Kritik)');
   if (a === 'renksil') modeliDegistir(gm => durumRenkleri(gm, true), n => `${n} şeklin rengi geri alındı`);
