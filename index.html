@@ -4,26 +4,425 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Akış Şeması</title>
-<style>html,body{margin:0;height:100%;background:#fff}iframe{border:0;width:100%;height:100%;display:block}</style>
+<style>
+:root{--bg:#fff;--fg:#1f2937;--soluk:#6b7280;--cizgi:#e5e7eb;--vurgu:#2563eb;--hover:#f3f4f6}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+body{display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid var(--cizgi);flex-wrap:wrap}
+header .bosluk{flex:1}
+button,select,input{font:inherit;color:inherit}
+button{background:#fff;border:1px solid var(--cizgi);border-radius:6px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+button:hover{background:var(--hover)}
+button.ana{background:var(--vurgu);border-color:var(--vurgu);color:#fff}
+button.tehlike{color:#b91c1c}
+#ad{border:1px solid transparent;border-radius:6px;padding:5px 8px;font-weight:600;min-width:120px;max-width:260px;background:transparent}
+#ad:hover,#ad:focus{border-color:var(--cizgi);outline:none}
+#durum{color:var(--soluk);font-size:12px}
+iframe#ed{border:0;flex:1;width:100%;display:block}
+.menu{position:relative}
+.menu>div{display:none;position:absolute;top:100%;left:0;margin-top:4px;background:#fff;border:1px solid var(--cizgi);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:4px;z-index:10;min-width:220px}
+.menu.acik>div{display:block}
+.menu>div button{display:block;width:100%;text-align:left;border:0}
+.menu>div small{display:block;color:var(--soluk);padding:6px 10px}
+dialog{border:1px solid var(--cizgi);border-radius:10px;padding:0;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 32px)}
+dialog::backdrop{background:rgba(0,0,0,.3)}
+dialog h2{margin:0;padding:14px 16px;font-size:16px;border-bottom:1px solid var(--cizgi);display:flex;justify-content:space-between;align-items:center}
+dialog .ic{padding:12px 16px;overflow:auto;max-height:65vh}
+dialog .alt{padding:10px 16px;border-top:1px solid var(--cizgi);display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+dialog label{display:block;margin:8px 0 4px;font-weight:600}
+dialog input[type=text],dialog input[type=url],dialog input[type=email],dialog input[type=password]{width:100%;padding:7px 9px;border:1px solid var(--cizgi);border-radius:6px}
+dialog p.not{color:var(--soluk);font-size:12px;margin:6px 0}
+.liste{list-style:none;margin:0;padding:0}
+.liste li{display:flex;align-items:center;gap:6px;padding:8px 6px;border-bottom:1px solid var(--cizgi)}
+.liste li.secili{background:#eff6ff}
+.liste li .ad{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.liste li .ad small{display:block;color:var(--soluk);font-weight:400}
+.sablonlar{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.sablonlar button{height:72px;text-align:left;white-space:normal;display:flex;flex-direction:column;justify-content:space-between;position:relative}
+.sablonlar button small{color:var(--soluk)}
+.sablonlar .sil{position:absolute;top:2px;right:4px;border:0;padding:0 4px;height:auto;color:#b91c1c;background:none}
+#logoOnizleme{max-height:60px;max-width:160px;display:block;margin-top:6px}
+</style>
 </head>
 <body>
+<header>
+  <button id="bCizimler" title="Kayıtlı çizimler">📁 Çizimlerim</button>
+  <input id="ad" type="text" aria-label="Çizim adı" title="Adı değiştirmek için tıklayın">
+  <button id="bYeni">＋ Yeni</button>
+  <div class="menu" id="mAktar">
+    <button id="bAktar">⬇ Dışa aktar</button>
+    <div>
+      <button data-aktar="png">PNG resim</button>
+      <button data-aktar="svg">SVG resim</button>
+      <button data-aktar="pdf">PDF (yazdır › PDF olarak kaydet)</button>
+      <button data-aktar="drawio">.drawio dosyası</button>
+      <small>Visio (.vsdx) için: editörde Dosya › Dışa aktar.</small>
+    </div>
+  </div>
+  <button id="bAc" title=".drawio veya .xml dosyası aç">📂 Dosyadan aç</button>
+  <span id="durum"></span>
+  <span class="bosluk"></span>
+  <button id="bAntet">🏢 Antet</button>
+  <button id="bBulut">☁ Bulut: kapalı</button>
+</header>
 <!-- draw.io (Apache-2.0) gömülü editör: Visio şekilleri, .vsdx içe aktarma, PNG/PDF/SVG dışa aktarma hazır gelir -->
 <iframe id="ed" src="https://embed.diagrams.net/?embed=1&proto=json&spin=1&lang=tr&libraries=1&noExitBtn=1&saveAndExit=0"></iframe>
+<input type="file" id="dosya" accept=".drawio,.xml,.dio" hidden>
+<input type="file" id="logoDosya" accept="image/png,image/jpeg,image/svg+xml" hidden>
+
+<dialog id="dCizimler">
+  <h2>Çizimlerim <button data-kapat>✕</button></h2>
+  <div class="ic"><ul class="liste" id="liste"></ul></div>
+  <div class="alt"><button data-kapat>Kapat</button></div>
+</dialog>
+
+<dialog id="dYeni">
+  <h2>Yeni çizim <button data-kapat>✕</button></h2>
+  <div class="ic">
+    <label for="yeniAd">Ad</label>
+    <input type="text" id="yeniAd" placeholder="Örn. Satın alma süreci">
+    <label>Şablon</label>
+    <div class="sablonlar" id="sablonlar"></div>
+    <p class="not">Antetli şablon, 🏢 Antet bölümüne girdiğiniz şirket adı ve logoyla doldurulur.</p>
+  </div>
+  <div class="alt">
+    <button id="bSablonKaydet" title="Açık çizimi şablon listesine ekler">Açık çizimi şablon yap</button>
+    <button data-kapat>Vazgeç</button>
+  </div>
+</dialog>
+
+<dialog id="dAntet">
+  <h2>Antet bilgileri <button data-kapat>✕</button></h2>
+  <div class="ic">
+    <label for="antetSirket">Şirket adı</label>
+    <input type="text" id="antetSirket" placeholder="Şirketinizin adı">
+    <label for="antetAlt">Alt satır (adres, birim vb.)</label>
+    <input type="text" id="antetAlt" placeholder="İsteğe bağlı">
+    <label for="antetHazirlayan">Hazırlayan</label>
+    <input type="text" id="antetHazirlayan" placeholder="İsteğe bağlı">
+    <label>Logo</label>
+    <button id="bLogoSec">Logo seç…</button> <button id="bLogoSil" class="tehlike">Logoyu kaldır</button>
+    <img id="logoOnizleme" alt="">
+    <p class="not">Bu bilgiler yalnızca bu tarayıcıda saklanır; yeni antetli çizim oluştururken kullanılır.</p>
+  </div>
+  <div class="alt"><button data-kapat>Vazgeç</button><button class="ana" id="bAntetKaydet">Kaydet</button></div>
+</dialog>
+
+<dialog id="dBulut">
+  <h2>Buluta kayıt <button data-kapat>✕</button></h2>
+  <div class="ic" id="bulutIc"></div>
+  <div class="alt" id="bulutAlt"></div>
+</dialog>
+
 <script>
-// ponytail: tek çizim tarayıcıda (localStorage); çok çizim / buluta kayıt gerekirse Supabase'e taşı
-const KEY = 'akis-semasi-xml';
-const ed = document.getElementById('ed');
-const oku = () => { try { return localStorage.getItem(KEY) || ''; } catch { return ''; } };
-const yaz = xml => { try { localStorage.setItem(KEY, xml); } catch {} };
+// ---------- yardımcılar ----------
+const $ = s => document.querySelector(s);
+const ls = {
+  al(k, v) { try { const x = localStorage.getItem(k); return x == null ? v : JSON.parse(x); } catch { return v; } },
+  yaz(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { durum('Tarayıcı belleği dolu, kaydedilemedi'); } }
+};
+const yeniId = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+const kacis = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const tarih = ms => new Date(ms).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' });
+let durumZaman;
+const durum = t => { $('#durum').textContent = t; clearTimeout(durumZaman); durumZaman = setTimeout(() => $('#durum').textContent = '', 3000); };
+document.querySelectorAll('dialog').forEach(d => d.addEventListener('click', e => { if (e.target === d || e.target.hasAttribute('data-kapat')) d.close(); }));
+
+// ---------- çizim deposu (localStorage; bulut açıksa ayrıca eşitlenir) ----------
+// cizimler: { id: { ad, xml, guncel } }
+const K = { cizimler: 'akis-cizimler', acik: 'akis-acik', silinen: 'akis-silinen', sablon: 'akis-sablonlar', antet: 'akis-antet', bulut: 'akis-bulut' };
+let cizimler = ls.al(K.cizimler, null);
+if (!cizimler) { // eski tek çizimli sürümden taşı
+  cizimler = {};
+  let eski = ''; try { eski = localStorage.getItem('akis-semasi-xml') || ''; } catch {}
+  if (eski) cizimler[yeniId()] = { ad: 'Akış Şeması', xml: eski, guncel: Date.now() };
+  ls.yaz(K.cizimler, cizimler);
+}
+let acikId = ls.al(K.acik, null);
+const kaydetDepo = () => { ls.yaz(K.cizimler, cizimler); ls.yaz(K.acik, acikId); };
+
+// ---------- editör köprüsü (draw.io embed JSON protokolü) ----------
+const ed = $('#ed');
 const gonder = m => ed.contentWindow.postMessage(JSON.stringify(m), '*');
+let hazir = false, yukleniyor = false, bekleyenAktar = null;
+
+function ac(id) {
+  if (!cizimler[id]) return;
+  acikId = id; kaydetDepo();
+  $('#ad').value = cizimler[id].ad;
+  document.title = cizimler[id].ad + ' – Akış Şeması';
+  if (hazir) { yukleniyor = true; gonder({ action: 'load', xml: cizimler[id].xml, autosave: 1, title: cizimler[id].ad }); }
+}
+function olustur(ad, xml) {
+  const id = yeniId();
+  cizimler[id] = { ad: ad || 'Adsız çizim', xml: xml || '', guncel: Date.now() };
+  ac(id); bulut.gonder(id);
+  return id;
+}
+function guncelle(xml) {
+  const c = cizimler[acikId]; if (!c || c.xml === xml) return;
+  c.xml = xml; c.guncel = Date.now(); kaydetDepo(); bulut.gonderGecikmeli(acikId);
+}
 
 addEventListener('message', e => {
   if (e.source !== ed.contentWindow || typeof e.data !== 'string') return;
-  const m = JSON.parse(e.data);
-  if (m.event === 'init') gonder({ action: 'load', xml: oku(), autosave: 1, title: 'Akış Şeması' });
-  if (m.event === 'autosave') yaz(m.xml);
-  if (m.event === 'save') { yaz(m.xml); gonder({ action: 'status', message: 'Kaydedildi', modified: false }); }
+  let m; try { m = JSON.parse(e.data); } catch { return; }
+  if (m.event === 'init') {
+    hazir = true;
+    if (!cizimler[acikId]) acikId = Object.keys(cizimler).sort((a, b) => cizimler[b].guncel - cizimler[a].guncel)[0];
+    if (!acikId) olustur('Akış Şeması', ''); else ac(acikId);
+  }
+  if (m.event === 'load') yukleniyor = false;
+  if (m.event === 'autosave' && !yukleniyor) guncelle(m.xml);
+  if (m.event === 'save') { guncelle(m.xml); gonder({ action: 'status', message: 'Kaydedildi', modified: false }); durum('Kaydedildi'); }
+  if (m.event === 'export' && bekleyenAktar) { const f = bekleyenAktar; bekleyenAktar = null; aktarBitir(f, m.data); }
 });
+
+// ---------- çizim listesi ----------
+function listeCiz() {
+  const ids = Object.keys(cizimler).sort((a, b) => cizimler[b].guncel - cizimler[a].guncel);
+  $('#liste').innerHTML = ids.map(id => `
+    <li class="${id === acikId ? 'secili' : ''}" data-id="${id}">
+      <span class="ad" data-is="ac">${kacis(cizimler[id].ad)}<small>${tarih(cizimler[id].guncel)}</small></span>
+      <button data-is="ac">Aç</button><button data-is="kopya">Kopyala</button><button data-is="sil" class="tehlike">Sil</button>
+    </li>`).join('') || '<li>Henüz çizim yok.</li>';
+}
+$('#bCizimler').onclick = () => { listeCiz(); $('#dCizimler').showModal(); };
+$('#liste').onclick = e => {
+  const is = e.target.dataset.is || e.target.parentElement?.dataset.is; const id = e.target.closest('li')?.dataset.id;
+  if (!is || !id) return;
+  if (is === 'ac') { ac(id); $('#dCizimler').close(); }
+  if (is === 'kopya') { olustur(cizimler[id].ad + ' (kopya)', cizimler[id].xml); $('#dCizimler').close(); }
+  if (is === 'sil' && confirm(`"${cizimler[id].ad}" silinsin mi? Bu geri alınamaz.`)) {
+    delete cizimler[id]; bulut.sil(id);
+    if (id === acikId) { const kalan = Object.keys(cizimler)[0]; kalan ? ac(kalan) : olustur('Akış Şeması', ''); }
+    kaydetDepo(); listeCiz();
+  }
+};
+$('#ad').onchange = () => {
+  const c = cizimler[acikId]; const ad = $('#ad').value.trim();
+  if (!c || !ad) { $('#ad').value = c?.ad || ''; return; }
+  c.ad = ad; c.guncel = Date.now(); kaydetDepo(); bulut.gonder(acikId);
+  document.title = ad + ' – Akış Şeması'; durum('Ad değişti');
+};
+$('#ad').onkeydown = e => { if (e.key === 'Enter') e.target.blur(); };
+
+// ---------- şablonlar ----------
+const model = (hucreler, sayfa = '') => `<mxGraphModel ${sayfa}><root><mxCell id="0"/><mxCell id="1" parent="0"/>${hucreler}</root></mxGraphModel>`;
+const kutu = (id, deger, stil, x, y, w, h) => `<mxCell id="${id}" value="${kacis(deger)}" style="${stil}" vertex="1" parent="1"><mxGeometry x="${x}" y="${y}" width="${w}" height="${h}" as="geometry"/></mxCell>`;
+const ok = (id, a, b, deger = '') => `<mxCell id="${id}" value="${kacis(deger)}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="1" source="${a}" target="${b}"><mxGeometry relative="1" as="geometry"/></mxCell>`;
+const S = {
+  basla: 'ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;',
+  bitir: 'ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;',
+  islem: 'rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;',
+  karar: 'rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;',
+  metin: 'text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;',
+};
+function basitAkis(ox = 0, oy = 0) {
+  return kutu('b1', 'Başla', S.basla, ox + 160, oy, 120, 50) +
+    kutu('b2', 'İşlem', S.islem, ox + 150, oy + 90, 140, 60) +
+    kutu('b3', 'Uygun mu?', S.karar, ox + 160, oy + 190, 120, 90) +
+    kutu('b4', 'Düzelt', S.islem, ox + 340, oy + 205, 120, 60) +
+    kutu('b5', 'Bitir', S.bitir, ox + 160, oy + 320, 120, 50) +
+    ok('o1', 'b1', 'b2') + ok('o2', 'b2', 'b3') + ok('o3', 'b3', 'b5', 'Evet') + ok('o4', 'b3', 'b4', 'Hayır') +
+    `<mxCell id="o5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="1" source="b4" target="b2"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="${ox + 400}" y="${oy + 120}"/></Array></mxGeometry></mxCell>`;
+}
+function antetli() {
+  const a = ls.al(K.antet, {});
+  const W = 827, H = 1169, m = 40, gen = W - 2 * m;
+  // draw.io stilinde ';' ayırıcı olduğundan data URI "data:image/png,BASE64" biçiminde yazılır
+  const logo = a.logo ? kutu('logo', '', `shape=image;imageAspect=1;aspect=fixed;image=${a.logo.replace(';base64', '')};`, m + 8, m + 8, 110, 64)
+    : kutu('logo', 'LOGO', 'rounded=0;whiteSpace=wrap;html=1;dashed=1;fontColor=#999999;strokeColor=#999999;', m + 8, m + 8, 110, 64);
+  const bugun = new Date().toLocaleDateString('tr-TR');
+  return model(
+    kutu('cerceve', '', 'rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#333333;', m, m, gen, H - 2 * m) +
+    kutu('antet', '', 'rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;', m, m, gen, 80) +
+    logo +
+    kutu('sirket', `<b style="font-size:16px">${kacis(a.sirket || 'ŞİRKET ADI')}</b><br><span style="font-size:11px;color:#555">${kacis(a.alt || '')}</span>`, S.metin, m + 130, m + 8, 330, 64) +
+    kutu('bilgi', `<b>Süreç:</b> ...<br><b>Doküman No:</b> ...<br><b>Tarih:</b> ${bugun}<br><b>Rev.:</b> 00`, S.metin + 'fontSize=11;', m + gen - 230, m + 6, 220, 68) +
+    kutu('baslik', '<b style="font-size:18px">SÜREÇ AKIŞ ŞEMASI</b>', 'text;html=1;align=center;verticalAlign=middle;', m, m + 95, gen, 30) +
+    basitAkis(m + 150, m + 150) +
+    kutu('altbilgi', `<b>Hazırlayan:</b> ${kacis(a.hazirlayan || '')}`, S.metin + 'fontSize=11;', m + 10, H - m - 40, 300, 30) +
+    kutu('onay', '<b>Onaylayan:</b>', S.metin + 'fontSize=11;', m + gen - 250, H - m - 40, 240, 30),
+    `pageWidth="${W}" pageHeight="${H}" page="1"`);
+}
+function seritli() {
+  const serit = (id, ad, y) => kutu(id, ad, 'swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=30;fillColor=#f5f5f5;', 0, y, 760, 140);
+  return model(
+    serit('s1', 'Talep eden', 0) + serit('s2', 'Onaylayan', 140) + serit('s3', 'Uygulayan', 280) +
+    kutu('a1', 'Talep oluştur', S.islem, 80, 40, 130, 60) +
+    kutu('a2', 'Onay?', S.karar, 280, 165, 110, 90) +
+    kutu('a3', 'Uygula', S.islem, 470, 320, 130, 60) +
+    kutu('a4', 'Bitir', S.bitir, 640, 325, 90, 50) +
+    ok('e1', 'a1', 'a2') + ok('e2', 'a2', 'a3', 'Evet') + ok('e3', 'a3', 'a4') + ok('e4', 'a2', 'a1', 'Hayır'));
+}
+const HAZIR = [
+  { ad: 'Boş sayfa', aciklama: 'Sıfırdan başla', xml: () => '' },
+  { ad: 'Basit akış', aciklama: 'Başla → işlem → karar', xml: () => model(basitAkis(0, 0)) },
+  { ad: 'Antetli A4', aciklama: 'Şirket antetli sayfa', xml: antetli },
+  { ad: 'Kulvarlı süreç', aciklama: 'Birim şeritleriyle', xml: seritli },
+];
+function sablonlariCiz() {
+  const kendi = ls.al(K.sablon, []);
+  $('#sablonlar').innerHTML =
+    HAZIR.map((s, i) => `<button data-hazir="${i}"><b>${s.ad}</b><small>${s.aciklama}</small></button>`).join('') +
+    kendi.map((s, i) => `<button data-kendi="${i}"><b>${kacis(s.ad)}</b><small>Şablonum</small><span class="sil" data-silsablon="${i}" title="Şablonu sil">✕</span></button>`).join('');
+}
+$('#bYeni').onclick = () => { $('#yeniAd').value = ''; sablonlariCiz(); $('#dYeni').showModal(); $('#yeniAd').focus(); };
+$('#sablonlar').onclick = e => {
+  const kendi = ls.al(K.sablon, []);
+  const sil = e.target.dataset.silsablon;
+  if (sil != null) { if (confirm(`"${kendi[sil].ad}" şablonu silinsin mi?`)) { kendi.splice(sil, 1); ls.yaz(K.sablon, kendi); sablonlariCiz(); } return; }
+  const b = e.target.closest('button'); if (!b) return;
+  const s = b.dataset.hazir != null ? HAZIR[b.dataset.hazir] : kendi[b.dataset.kendi];
+  const xml = typeof s.xml === 'function' ? s.xml() : s.xml;
+  olustur($('#yeniAd').value.trim() || (s.ad === 'Boş sayfa' ? 'Adsız çizim' : s.ad), xml);
+  $('#dYeni').close();
+};
+$('#bSablonKaydet').onclick = () => {
+  const c = cizimler[acikId]; if (!c) return;
+  const ad = prompt('Şablon adı:', c.ad); if (!ad) return;
+  const kendi = ls.al(K.sablon, []); kendi.push({ ad, xml: c.xml }); ls.yaz(K.sablon, kendi);
+  sablonlariCiz(); durum('Şablon kaydedildi');
+};
+
+// ---------- antet ----------
+let antetLogo = null;
+$('#bAntet').onclick = () => {
+  const a = ls.al(K.antet, {});
+  $('#antetSirket').value = a.sirket || ''; $('#antetAlt').value = a.alt || ''; $('#antetHazirlayan').value = a.hazirlayan || '';
+  antetLogo = a.logo || null; $('#logoOnizleme').src = antetLogo || ''; $('#logoOnizleme').hidden = !antetLogo;
+  $('#dAntet').showModal();
+};
+$('#bLogoSec').onclick = () => $('#logoDosya').click();
+$('#bLogoSil').onclick = () => { antetLogo = null; $('#logoOnizleme').hidden = true; };
+$('#logoDosya').onchange = e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  if (f.size > 300 * 1024) return alert('Logo en fazla 300 KB olabilir.');
+  const r = new FileReader(); r.onload = () => { antetLogo = r.result; $('#logoOnizleme').src = antetLogo; $('#logoOnizleme').hidden = false; }; r.readAsDataURL(f);
+};
+$('#bAntetKaydet').onclick = () => {
+  ls.yaz(K.antet, { sirket: $('#antetSirket').value.trim(), alt: $('#antetAlt').value.trim(), hazirlayan: $('#antetHazirlayan').value.trim(), logo: antetLogo });
+  $('#dAntet').close(); durum('Antet kaydedildi; yeni › Antetli A4 ile kullanın');
+};
+
+// ---------- dışa / içe aktarma ----------
+const dosyaAdi = uz => (cizimler[acikId]?.ad || 'cizim').replace(/[\\/:*?"<>|]+/g, '_') + '.' + uz;
+function indir(href, ad) { const a = document.createElement('a'); a.href = href; a.download = ad; document.body.appendChild(a); a.click(); a.remove(); }
+$('#bAktar').onclick = e => { e.stopPropagation(); $('#mAktar').classList.toggle('acik'); };
+addEventListener('click', () => $('#mAktar').classList.remove('acik'));
+$('#mAktar').querySelector('div').onclick = e => {
+  const f = e.target.dataset.aktar; if (!f) return;
+  $('#mAktar').classList.remove('acik');
+  if (f === 'drawio') {
+    const url = URL.createObjectURL(new Blob([cizimler[acikId]?.xml || model('')], { type: 'application/xml' }));
+    indir(url, dosyaAdi('drawio')); setTimeout(() => URL.revokeObjectURL(url), 1000); return;
+  }
+  bekleyenAktar = f; durum('Hazırlanıyor…');
+  // xmlpng/xmlsvg: resmin içine çizim de gömülür, draw.io'da yeniden açılıp düzenlenebilir
+  gonder({ action: 'export', format: { png: 'xmlpng', svg: 'xmlsvg', pdf: 'svg' }[f], spinKey: 'export' });
+};
+function aktarBitir(f, data) {
+  if (!data) return durum('Dışa aktarılamadı');
+  if (f !== 'pdf') { indir(data, dosyaAdi(f)); durum('İndirildi'); return; }
+  const fr = document.createElement('iframe'); fr.style.cssText = 'position:fixed;width:0;height:0;border:0';
+  fr.srcdoc = `<!doctype html><title>${kacis(cizimler[acikId]?.ad)}</title><style>@page{margin:10mm}html,body{margin:0}img{max-width:100%;max-height:100vh;display:block;margin:auto}</style><img src="${data}">`;
+  fr.onload = () => { const w = fr.contentWindow; w.onafterprint = () => setTimeout(() => fr.remove(), 100); w.focus(); w.print(); };
+  document.body.appendChild(fr);
+  durum('Yazdır penceresinde "PDF olarak kaydet"i seçin');
+}
+$('#bAc').onclick = () => $('#dosya').click();
+$('#dosya').onchange = e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  f.text().then(xml => {
+    if (!/<mxfile|<mxGraphModel/.test(xml)) return alert('Bu bir draw.io dosyası değil. Visio (.vsdx) için editörde Dosya › İçe aktar\'ı kullanın.');
+    olustur(f.name.replace(/\.[^.]+$/, ''), xml); durum('Dosya açıldı');
+  });
+};
+
+// ---------- bulut (Supabase; anahtarlar yalnızca kullanıcının tarayıcısında) ----------
+const bulut = (() => {
+  let sb = null, kullanici = null, zaman = {};
+  const ayar = () => ls.al(K.bulut, null);
+  const dugme = () => $('#bBulut').textContent = kullanici ? '☁ ' + kullanici.email : (ayar() ? '☁ Bulut: giriş yapın' : '☁ Bulut: kapalı');
+
+  async function baslat() {
+    const a = ayar(); dugme(); if (!a) return;
+    if (!window.supabase) await new Promise((ok, hata) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
+      s.onload = ok; s.onerror = hata; document.head.appendChild(s);
+    }).catch(() => durum('Bulut kütüphanesi yüklenemedi'));
+    if (!window.supabase) return;
+    sb = window.supabase.createClient(a.url, a.key);
+    sb.auth.onAuthStateChange((_, oturum) => {
+      const onceki = kullanici; kullanici = oturum?.user || null; dugme();
+      if (kullanici && !onceki) esitle();
+    });
+  }
+  async function esitle() {
+    if (!sb || !kullanici) return;
+    const silinen = ls.al(K.silinen, []);
+    if (silinen.length) { const { error } = await sb.from('cizimler').delete().in('id', silinen); if (!error) ls.yaz(K.silinen, []); }
+    const { data, error } = await sb.from('cizimler').select('id,ad,xml,guncel');
+    if (error) return durum('Bulut hatası: ' + error.message);
+    const uzak = Object.fromEntries(data.map(r => [r.id, r]));
+    let acikDegisti = false;
+    for (const r of data) {
+      const yerel = cizimler[r.id];
+      if (!yerel || yerel.guncel < r.guncel) { cizimler[r.id] = { ad: r.ad, xml: r.xml, guncel: r.guncel }; if (r.id === acikId) acikDegisti = true; }
+    }
+    const yukle = Object.keys(cizimler).filter(id => !uzak[id] || uzak[id].guncel < cizimler[id].guncel);
+    if (yukle.length) await sb.from('cizimler').upsert(yukle.map(id => ({ id, ...cizimler[id] })));
+    kaydetDepo();
+    if (acikDegisti) ac(acikId);
+    durum('Bulutla eşitlendi');
+  }
+  async function gonder(id) {
+    if (!sb || !kullanici || !cizimler[id]) return;
+    const { error } = await sb.from('cizimler').upsert({ id, ...cizimler[id] });
+    if (error) durum('Buluta kaydedilemedi: ' + error.message);
+  }
+  function gonderGecikmeli(id) { clearTimeout(zaman[id]); zaman[id] = setTimeout(() => gonder(id), 2000); }
+  async function sil(id) {
+    if (sb && kullanici) { const { error } = await sb.from('cizimler').delete().eq('id', id); if (!error) return; }
+    if (ayar()) { const s = ls.al(K.silinen, []); s.push(id); ls.yaz(K.silinen, s); }
+  }
+
+  function pencere() {
+    const a = ayar() || {};
+    if (kullanici) {
+      $('#bulutIc').innerHTML = `<p>Giriş yapıldı: <b>${kacis(kullanici.email)}</b></p><p class="not">Çizimleriniz her değişiklikte buluta kaydedilir. Başka bir cihazda aynı e-postayla giriş yaparak açabilirsiniz.</p>`;
+      $('#bulutAlt').innerHTML = `<button id="bEsitle">Şimdi eşitle</button><button id="bCikis" class="tehlike">Çıkış yap</button><button data-kapat>Kapat</button>`;
+      $('#bEsitle').onclick = () => esitle();
+      $('#bCikis').onclick = async () => { await sb.auth.signOut(); $('#dBulut').close(); };
+    } else {
+      $('#bulutIc').innerHTML = `
+        <p class="not">Çizimlerin her cihazda görünmesi için ücretsiz bir <a href="https://supabase.com" target="_blank" rel="noopener">Supabase</a> projesi gerekir. Kurulum adımları depodaki BULUT.md dosyasında.</p>
+        <label for="bUrl">Proje adresi (Project URL)</label><input type="url" id="bUrl" placeholder="https://xxxx.supabase.co" value="${kacis(a.url)}">
+        <label for="bKey">Herkese açık anahtar (anon / publishable key)</label><input type="password" id="bKey" value="${kacis(a.key)}">
+        <label for="bEposta">E-posta</label><input type="email" id="bEposta" placeholder="ornek@eposta.com">
+        <p class="not">E-postanıza giriş bağlantısı gelir; tıkladığınızda bu sayfa açılır ve eşitleme başlar. Bilgiler yalnızca bu tarayıcıda saklanır.</p>`;
+      $('#bulutAlt').innerHTML = `${a.url ? '<button id="bBulutKapat" class="tehlike">Bulutu kapat</button>' : ''}<button data-kapat>Vazgeç</button><button class="ana" id="bGiris">Giriş bağlantısı gönder</button>`;
+      if ($('#bBulutKapat')) $('#bBulutKapat').onclick = () => { try { localStorage.removeItem(K.bulut); } catch {} sb = null; dugme(); $('#dBulut').close(); };
+      $('#bGiris').onclick = async () => {
+        const url = $('#bUrl').value.trim().replace(/\/+$/, ''), key = $('#bKey').value.trim(), eposta = $('#bEposta').value.trim();
+        if (!/^https:\/\/.+/.test(url) || !key || !eposta) return alert('Adres, anahtar ve e-posta gerekli.');
+        if (!a.url || a.url !== url || a.key !== key) { ls.yaz(K.bulut, { url, key }); sb = null; await baslat(); }
+        if (!sb) return;
+        const { error } = await sb.auth.signInWithOtp({ email: eposta, options: { emailRedirectTo: location.origin + location.pathname } });
+        if (error) return alert('Gönderilemedi: ' + error.message);
+        $('#bulutIc').innerHTML = `<p>Giriş bağlantısı <b>${kacis(eposta)}</b> adresine gönderildi. E-postanızdaki bağlantıya tıklayın.</p>`;
+        $('#bulutAlt').innerHTML = '<button data-kapat>Tamam</button>';
+      };
+    }
+    $('#dBulut').showModal();
+  }
+  $('#bBulut').onclick = pencere;
+  baslat();
+  return { gonder, gonderGecikmeli, sil };
+})();
 </script>
 </body>
 </html>
