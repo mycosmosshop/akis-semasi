@@ -32,6 +32,8 @@ dialog .ic{padding:12px 16px;overflow:auto;max-height:65vh}
 dialog .alt{padding:10px 16px;border-top:1px solid var(--cizgi);display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
 dialog label{display:block;margin:8px 0 4px;font-weight:600}
 dialog input[type=text],dialog input[type=url],dialog input[type=email],dialog input[type=password]{width:100%;padding:7px 9px;border:1px solid var(--cizgi);border-radius:6px}
+dialog select{width:100%;padding:7px 9px;border:1px solid var(--cizgi);border-radius:6px;background:#fff}
+dialog input[type=color]{width:48px;height:32px;padding:2px;border:1px solid var(--cizgi);border-radius:6px;vertical-align:middle}
 dialog p.not{color:var(--soluk);font-size:12px;margin:6px 0}
 .liste{list-style:none;margin:0;padding:0}
 .liste li{display:flex;align-items:center;gap:6px;padding:8px 6px;border-bottom:1px solid var(--cizgi)}
@@ -131,12 +133,22 @@ dialog textarea{width:100%;padding:8px;border:1px solid var(--cizgi);border-radi
     <input type="text" id="antetDokNo" placeholder="Örn. İA-001">
     <label for="antetRev">Revizyon no</label>
     <input type="text" id="antetRev" placeholder="00">
+    <label for="antetStil">Antet stili</label>
+    <select id="antetStil"><option value="klasik">Klasik (logo + şirket adı + bilgi kutusu)</option><option value="serit">Kurumsal şerit (koyu ad bandı · başlık · doküman no bandı)</option></select>
+    <label>Renkler (ana / açık)</label>
+    <input type="color" id="antetRenk1" value="#1f4e79"> <input type="color" id="antetRenk2" value="#d5e8f0">
+    <label for="antetAltBilgi">Alt bilgi metni</label>
+    <input type="text" id="antetAltBilgi" placeholder="Örn. Gizli / Dahili Kullanım">
     <label>Logo</label>
     <button id="bLogoSec">Logo seç…</button> <button id="bLogoSil" class="tehlike">Logoyu kaldır</button>
     <img id="logoOnizleme" alt="">
-    <p class="not">Bu bilgiler yalnızca bu tarayıcıda saklanır; yeni antetli çizim oluştururken kullanılır.</p>
+    <p class="not">Bu bilgiler yalnızca bu tarayıcıda saklanır; yeni antetli çizim ve Excel çıktısında kullanılır. Ekip arkadaşlarınıza "Dışa aktar" ile dosya olarak verebilirsiniz.</p>
   </div>
-  <div class="alt"><button data-kapat>Vazgeç</button><button class="ana" id="bAntetKaydet">Kaydet</button></div>
+  <div class="alt">
+    <button id="bAntetIce">İçe aktar…</button><button id="bAntetDisa">Dışa aktar</button>
+    <button data-kapat>Vazgeç</button><button class="ana" id="bAntetKaydet">Kaydet</button>
+  </div>
+  <input type="file" id="antetDosya" accept=".json,application/json" hidden>
 </dialog>
 
 <dialog id="dYz">
@@ -232,7 +244,26 @@ function ac(id, yuklenecek) {
   acikId = id; kaydetDepo();
   $('#ad').value = cizimler[id].ad;
   document.title = cizimler[id].ad + ' – Akış Şeması';
-  if (hazir) { yukleniyor = true; gonder({ action: 'load', xml: yuklenecek ?? cizimler[id].xml, autosave: 1, title: cizimler[id].ad }); }
+  if (!hazir) return;
+  yukleniyor = true;
+  const c = cizimler[id];
+  (yuklenecek != null ? Promise.resolve(yuklenecek) : atlamaliXml(c.xml)).then(xml => {
+    if (yuklenecek == null && xml !== c.xml) { c.xml = xml; kaydetDepo(); }
+    if (acikId === id) gonder({ action: 'load', xml, autosave: 1, title: c.ad });
+  });
+}
+// draw.io'da bir çizgi yalnızca kendi stilinde jumpStyle varsa ve kendinden önce çizilen çizgiyi keserse atlar;
+// bu yüzden açılışta atlama ayarı olmayan tüm çizgilere eklenir ("Atlama yok" seçilenler jumpStyle=none ile korunur)
+async function atlamaliXml(xml) {
+  if (!xml || !/edge="1"|<diagram[^>]*>\s*[^<\s]/.test(xml)) return xml;
+  try {
+    const sayfalar = await sayfalariOku(xml);
+    let n = 0;
+    for (const s of sayfalar) for (const h of hucreleriOku(s.gm).liste) if (h.edge && h.stil.jumpStyle == null) {
+      h.stil.jumpStyle = 'arc'; h.stil.jumpSize = '8'; h.c.setAttribute('style', stilYaz(h.stil)); n++;
+    }
+    return n ? sayfalariYaz(sayfalar) : xml;
+  } catch { return xml; }
 }
 function olustur(ad, xml) {
   const id = yeniId();
@@ -319,12 +350,28 @@ function antetli() {
   const a = ls.al(K.antet, {});
   const W = 827, H = 1169, m = 40, gen = W - 2 * m;
   // draw.io stilinde ';' ayırıcı olduğundan data URI "data:image/png,BASE64" biçiminde yazılır
-  const logo = a.logo ? kutu('logo', '', `shape=image;imageAspect=1;aspect=fixed;image=${a.logo.replace(';base64', '')};`, m + 8, m + 8, 110, 64)
-    : kutu('logo', 'LOGO', 'rounded=0;whiteSpace=wrap;html=1;dashed=1;fontColor=#999999;strokeColor=#999999;', m + 8, m + 8, 110, 64);
+  const logo = a.logo ? kutu('logo', '', `antet=1;shape=image;imageAspect=1;aspect=fixed;image=${a.logo.replace(';base64', '')};`, m + 8, m + 8, 110, 64)
+    : kutu('logo', 'LOGO', 'antet=1;rounded=0;whiteSpace=wrap;html=1;dashed=1;fontColor=#999999;strokeColor=#999999;', m + 8, m + 8, 110, 64);
   const bugun = new Date().toLocaleDateString('tr-TR');
+  if (a.stil === 'serit') { // kurumsal şerit: [koyu bant: şirket] [başlık] [açık bant: doküman no / rev]
+    const r1 = a.renk1 || '#1f4e79', r2 = a.renk2 || '#d5e8f0', gri = 'text;html=1;fontFamily=Arial;fontSize=10;fontColor=#888888;verticalAlign=middle;';
+    const sol = 150, sag = 170;
+    return model(
+      kutu('ant_sirket', `<b>${kacis(a.sirket || 'ŞİRKET ADI')}</b>`, `antet=1;rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=13;fontColor=#FFFFFF;fillColor=${r1};strokeColor=${r1};`, m, m, sol, 50) +
+      kutu('ant_baslik', '<b>SÜREÇ AKIŞ ŞEMASI</b>', `antet=1;rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=12;fontColor=${r1};fillColor=#FFFFFF;strokeColor=${r1};`, m + sol, m, gen - sol - sag, 50) +
+      kutu('ant_bilgi', `<b>${kacis(a.dokNo || 'DOK-NO')} Rev.${kacis(a.rev || '00')}</b><br>${bugun}`, `antet=1;rounded=0;whiteSpace=wrap;html=1;fontFamily=Arial;fontSize=10;fontColor=${r1};fillColor=${r2};strokeColor=${r1};`, m + gen - sag, m, sag, 50) +
+      basitAkis(m + 150, m + 110) +
+      kutu('altbilgi', `<b>Hazırlayan:</b> ${kacis(a.hazirlayan || '')}`, S.metin + 'fontFamily=Arial;fontSize=11;', m, H - m - 80, 300, 30) +
+      kutu('onay', '<b>Onaylayan:</b>', S.metin + 'fontFamily=Arial;fontSize=11;', m + gen - 250, H - m - 80, 240, 30) +
+      `<mxCell id="ant_cizgi" style="endArrow=none;html=1;strokeColor=${r1};" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="${m}" y="${H - m - 30}" as="sourcePoint"/><mxPoint x="${m + gen}" y="${H - m - 30}" as="targetPoint"/></mxGeometry></mxCell>` +
+      kutu('ant_sayfa', 'Sayfa 1', gri + 'align=left;', m, H - m - 28, 120, 24) +
+      kutu('ant_gizli', kacis(a.altBilgi || ''), gri + 'align=center;', m + 150, H - m - 28, gen - 300, 24) +
+      kutu('ant_tarih', new Date().toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' }), gri + 'align=right;', m + gen - 150, H - m - 28, 150, 24),
+      `pageWidth="${W}" pageHeight="${H}" page="1"`);
+  }
   return model(
-    kutu('cerceve', '', 'rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#333333;', m, m, gen, H - 2 * m) +
-    kutu('antet', '', 'rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;', m, m, gen, 80) +
+    kutu('cerceve', '', 'antet=1;rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#333333;', m, m, gen, H - 2 * m) +
+    kutu('antet', '', 'antet=1;rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;', m, m, gen, 80) +
     logo +
     kutu('sirket', `<b style="font-size:16px">${kacis(a.sirket || 'ŞİRKET ADI')}</b><br><span style="font-size:11px;color:#555">${kacis(a.alt || '')}</span>`, S.metin, m + 130, m + 8, 330, 64) +
     kutu('bilgi', `<b>Süreç:</b> ...<br><b>Doküman No:</b> ${kacis(a.dokNo || '...')}<br><b>Tarih:</b> ${bugun}<br><b>Rev.:</b> ${kacis(a.rev || '00')}`, S.metin + 'fontSize=11;', m + gen - 230, m + 6, 220, 68) +
@@ -376,12 +423,27 @@ $('#bSablonKaydet').onclick = () => {
 
 // ---------- antet ----------
 let antetLogo = null;
-$('#bAntet').onclick = () => {
-  const a = ls.al(K.antet, {});
-  $('#antetSirket').value = a.sirket || ''; $('#antetAlt').value = a.alt || ''; $('#antetHazirlayan').value = a.hazirlayan || '';
-  $('#antetDokNo').value = a.dokNo || ''; $('#antetRev').value = a.rev || '';
+const ANTET_ALAN = { sirket: '#antetSirket', alt: '#antetAlt', hazirlayan: '#antetHazirlayan', dokNo: '#antetDokNo', rev: '#antetRev', altBilgi: '#antetAltBilgi' };
+function antetFormu(a) {
+  for (const [k, s] of Object.entries(ANTET_ALAN)) $(s).value = a[k] || '';
+  $('#antetStil').value = a.stil || 'klasik'; $('#antetRenk1').value = a.renk1 || '#1f4e79'; $('#antetRenk2').value = a.renk2 || '#d5e8f0';
   antetLogo = a.logo || null; $('#logoOnizleme').src = antetLogo || ''; $('#logoOnizleme').hidden = !antetLogo;
-  $('#dAntet').showModal();
+}
+const antetOku = () => ({
+  ...Object.fromEntries(Object.entries(ANTET_ALAN).map(([k, s]) => [k, $(s).value.trim()])),
+  stil: $('#antetStil').value, renk1: $('#antetRenk1').value, renk2: $('#antetRenk2').value, logo: antetLogo,
+});
+$('#bAntet').onclick = () => { antetFormu(ls.al(K.antet, {})); $('#dAntet').showModal(); };
+$('#bAntetDisa').onclick = () => blobIndir(new Blob([JSON.stringify({ tur: 'akis-antet', surum: 1, ...antetOku() }, null, 1)], { type: 'application/json' }), 'antet.json');
+$('#bAntetIce').onclick = () => $('#antetDosya').click();
+$('#antetDosya').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const j = JSON.parse(await f.text());
+    if (j.tur !== 'akis-antet') throw new Error();
+    if (j.logo && !/^data:image\/(png|jpeg|svg\+xml);base64,[A-Za-z0-9+/=]+$/.test(j.logo)) delete j.logo;
+    antetFormu(j); durum('Antet dosyası yüklendi; Kaydet\'e basın');
+  } catch { alert('Bu bir antet dosyası değil.'); }
 };
 $('#bLogoSec').onclick = () => $('#logoDosya').click();
 $('#bLogoSil').onclick = () => { antetLogo = null; $('#logoOnizleme').hidden = true; };
@@ -391,8 +453,7 @@ $('#logoDosya').onchange = e => {
   const r = new FileReader(); r.onload = () => { antetLogo = r.result; $('#logoOnizleme').src = antetLogo; $('#logoOnizleme').hidden = false; }; r.readAsDataURL(f);
 };
 $('#bAntetKaydet').onclick = () => {
-  ls.yaz(K.antet, { sirket: $('#antetSirket').value.trim(), alt: $('#antetAlt').value.trim(), hazirlayan: $('#antetHazirlayan').value.trim(),
-    dokNo: $('#antetDokNo').value.trim(), rev: $('#antetRev').value.trim(), logo: antetLogo });
+  ls.yaz(K.antet, antetOku());
   $('#dAntet').close(); durum('Antet kaydedildi; yeni › Antetli A4 ile kullanın');
 };
 
@@ -501,7 +562,7 @@ function akisOku(gm) {
   const bagli = new Set(kenarlar.flatMap(k => [k.source, k.target]));
   const seritler = liste.filter(h => h.vertex && seritMi(h));
   const adimHucreleri = liste.filter(h => h.vertex && !katman(h) && !seritMi(h) && !harita[h.parent]?.edge &&
-    h.stil._sekil !== 'text' && h.stil._sekil !== 'group' && h.stil.shape !== 'image' && (h.metin || bagli.has(h.id)));
+    h.stil._sekil !== 'text' && h.stil._sekil !== 'group' && h.stil.antet !== '1' && h.stil.shape !== 'image' && (h.metin || bagli.has(h.id)));
   const adimSet = new Set(adimHucreleri.map(h => h.id));
   const giren = id => kenarlar.filter(k => k.target === id), cikan = id => kenarlar.filter(k => k.source === id);
   const tip = h => {
@@ -561,7 +622,7 @@ async function modeliDegistir(fn, mesaj) {
 function atlamaAyarla(gm, tur) {
   let n = 0;
   for (const h of hucreleriOku(gm).liste) if (h.edge) {
-    if (tur) { h.stil.jumpStyle = tur; h.stil.jumpSize = '8'; } else { delete h.stil.jumpStyle; delete h.stil.jumpSize; }
+    h.stil.jumpStyle = tur || 'none'; if (tur) h.stil.jumpSize = '8'; else delete h.stil.jumpSize;
     h.c.setAttribute('style', stilYaz(h.stil)); n++;
   }
   return n;
@@ -673,13 +734,27 @@ async function excelYap(xml, png) {
     views: [{ showGridLines: false }],
     pageSetup: { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: '1:6',
       margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 } },
-    headerFooter: { oddFooter: '&L' + (a.dokNo || '') + '&RSayfa &P / &N' },
   });
+  const serit = a.stil === 'serit', argb = h => 'FF' + (h || '#1f4e79').slice(1).toUpperCase();
+  const R1 = argb(a.renk1), R2 = argb(a.renk2 || '#d5e8f0'), yazi = serit ? { name: 'Arial' } : {};
+  const fk = s => String(s || '').replace(/&/g, '&&'), af = '&"Arial"&8&K888888';
+  ws.headerFooter.oddFooter = serit
+    ? `&L${af}Sayfa &P / &N&C${af}${fk(a.altBilgi)}&R${af}${fk(new Date().toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' }))}`
+    : '&L' + fk(a.dokNo) + (a.altBilgi ? '&C' + fk(a.altBilgi) : '') + '&RSayfa &P / &N';
   ws.columns = [6, 36, 11, 18, 16, 9, 13, 26].map(width => ({ width }));
   const ince = { style: 'thin', color: { argb: 'FF404040' } }, kenar = { top: ince, left: ince, bottom: ince, right: ince };
   const orta = { horizontal: 'center', vertical: 'middle', wrapText: true };
   const yaz = (adres, deger, stil = {}) => { const c = ws.getCell(adres); c.value = deger; Object.assign(c, stil); return c; };
   const cerceve = (r1, r2, c1, c2) => { for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) ws.getCell(r, c).border = kenar; };
+  if (serit) { // A1:B4 koyu bant şirket adı | C1:F4 başlık | G1:H4 açık bant doküman no / rev / tarih
+    ws.mergeCells('A1:B4'); ws.mergeCells('C1:F4'); ws.mergeCells('G1:H4');
+    yaz('A1', a.sirket || 'ŞİRKET ADI', { font: { ...yazi, bold: true, size: 12, color: { argb: 'FFFFFFFF' } }, alignment: orta, fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: R1 } } });
+    yaz('C1', 'İŞ AKIŞ ŞEMASI' + (ad ? ' — ' + ad : ''), { font: { ...yazi, bold: true, size: 11, color: { argb: R1 } }, alignment: orta });
+    yaz('G1', `${a.dokNo || ''} Rev.${a.rev || '00'}\nYayın: ${new Date().toLocaleDateString('tr-TR')}`, { font: { ...yazi, bold: true, size: 9, color: { argb: R1 } }, alignment: orta, fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: R2 } } });
+    for (let i = 1; i <= 4; i++) ws.getRow(i).height = 13;
+    const kenarR = { style: 'thin', color: { argb: R1 } };
+    for (let r = 1; r <= 4; r++) for (let c = 1; c <= 8; c++) ws.getCell(r, c).border = { top: kenarR, left: kenarR, bottom: kenarR, right: kenarR };
+  } else {
   // antet: A1:B4 logo | C1:F2 şirket | C3:F4 başlık | G-H doküman bilgileri
   ws.mergeCells('A1:B4'); ws.mergeCells('C1:F2'); ws.mergeCells('C3:F4');
   yaz('C1', { richText: [{ text: a.sirket || 'ŞİRKET ADI', font: { bold: true, size: 14 } }, ...(a.alt ? [{ text: '\n' + a.alt, font: { size: 9, color: { argb: 'FF555555' } } }] : [])] }, { alignment: orta });
@@ -692,10 +767,11 @@ async function excelYap(xml, png) {
     const [lw, lh] = await resimBoyutu(a.logo), k = lw && lh ? Math.min(250 / lw, 100 / lh) : 1;
     ws.addImage(wb.addImage({ base64: a.logo, extension: a.logo.includes('png') ? 'png' : 'jpeg' }), { tl: { col: 0.2, row: 0.2 }, ext: { width: lw * k || 120, height: lh * k || 60 } });
   } else yaz('A1', 'LOGO', { alignment: orta, font: { color: { argb: 'FF999999' } } });
+  }
   // faaliyet tablosu
   const basliklar = ['Sıra', 'Faaliyet / Adım', 'Tip', 'Sorumlu', 'Sonraki Adım', 'Süre (dk)', 'Durum', 'Açıklama / Doküman'];
   const bas = ws.getRow(6); bas.values = basliklar; bas.height = 30;
-  bas.eachCell(c => { c.font = { bold: true, color: { argb: 'FFFFFFFF' } }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E79' } }; c.alignment = orta; c.border = kenar; });
+  bas.eachCell(c => { c.font = { ...yazi, bold: true, color: { argb: 'FFFFFFFF' } }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: R1 } }; c.alignment = orta; c.border = kenar; });
   const TIP_RENK = { 'Başla': 'FFE2EFDA', 'Bitir': 'FFFCE4D6', 'Karar': 'FFFFF2CC' };
   akis.adimlar.forEach((s, i) => {
     const satir = ws.getRow(7 + i);
