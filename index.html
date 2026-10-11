@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Akış Şeması</title>
+<style>html,body{margin:0;height:100%;background:#fff}iframe{border:0;width:100%;height:100%;display:block}</style>
+</head>
+<body>
+<!-- draw.io (Apache-2.0) gömülü editör: Visio şekilleri, .vsdx içe aktarma, PNG/PDF/SVG dışa aktarma hazır gelir -->
+<iframe id="ed" src="https://embed.diagrams.net/?embed=1&proto=json&spin=1&lang=tr&libraries=1&noExitBtn=1&saveAndExit=0"></iframe>
+<script>
+// ponytail: tek çizim tarayıcıda (localStorage); çok çizim / buluta kayıt gerekirse Supabase'e taşı
+const KEY = 'akis-semasi-xml';
+const ed = document.getElementById('ed');
+const oku = () => { try { return localStorage.getItem(KEY) || ''; } catch { return ''; } };
+const yaz = xml => { try { localStorage.setItem(KEY, xml); } catch {} };
+const gonder = m => ed.contentWindow.postMessage(JSON.stringify(m), '*');
+
+addEventListener('message', e => {
+  if (e.source !== ed.contentWindow || typeof e.data !== 'string') return;
+  const m = JSON.parse(e.data);
+  if (m.event === 'init') gonder({ action: 'load', xml: oku(), autosave: 1, title: 'Akış Şeması' });
+  if (m.event === 'autosave') yaz(m.xml);
+  if (m.event === 'save') { yaz(m.xml); gonder({ action: 'status', message: 'Kaydedildi', modified: false }); }
+});
+</script>
+</body>
+</html>
