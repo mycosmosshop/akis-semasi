@@ -2,7 +2,9 @@
 
 Visio benzeri akış şeması çizme aracı. Canlı: https://mycosmosshop.github.io/akis-semasi/
 
-- Tek dosya: `index.html`. draw.io'nun gömülü editörünü (embed.diagrams.net, JSON protokolü) iframe'de açar; üstteki çubuk sarmalayıcıya ait.
+- Sarmalayıcı tek dosya: `index.html`; draw.io'yu iframe'de gömülü modda (JSON protokolü) açar, üstteki çubuk sarmalayıcıya ait.
+- draw.io bu depoda `drawio/` altında barındırılır (32.4.1, jgraph/drawio `src/main/webapp`; WEB-INF, integrate.min.js, js/grapheditor, js/diagramly (Extensions.js hariç) ve .map dosyaları çıkarıldı; kaynak/sürüm `drawio/KAYNAK.txt`). Değişiklik yalnızca `drawio/js/PostConfig.js` sonunda: sağ tık menüsüne "Çizgi atlama ▸" ve satır içi Bağlantı penceresine simgeli atlama bölümleri (seçili çizgiye uygular). Güncellerken yeni webapp'i kopyala, bu bloğu PostConfig.js sonuna yeniden ekle. embed.diagrams.net'e geri dönülürse bu menüler kaybolur (orada özel eklenti yüklenmez).
+- Gerçek editörle sınama mümkün: `python3 -m http.server` ile depo kökünü sun, Playwright ile `index.html`'i aç (dış ağ gerekmez); editör nesnesi için addInitScript ile `EditorUi.prototype.createDivs`'i sarıp `window.__ui` yakala.
 - Sarmalayıcı: çoklu çizim (localStorage `akis-cizimler`), şablonlar (hazır + kullanıcının), antet (şirket adı/logo, `akis-antet`), dışa aktarma (PNG/SVG xml gömülü, PDF yazdırma, .drawio), dosyadan açma, Supabase ile isteğe bağlı bulut eşitleme (kurulum: `BULUT.md`; anahtar kullanıcının tarayıcısında).
 - Editör `configure=1` ile açılır: `compressXml:false` (sarmalayıcı XML'i okur/düzenler) ve varsayılan çizgi atlama (`jumpStyle=arc`).
 - Visio: içe aktarma draw.io'nun kendi içe aktarıcısıyla (`load` mesajına `data:application/vnd.visio;base64,…`); dışa aktarma sarmalayıcıdaki kendi VSDX yazıcısıyla (`vsdxYap`; draw.io'nunki yalnızca Atlassian'da açık). Sınamak için LibreOffice: `soffice --headless --convert-to png x.vsdx`.
@@ -10,8 +12,8 @@ Visio benzeri akış şeması çizme aracı. Canlı: https://mycosmosshop.github
 - Excel çıktısı (ExcelJS, CDN'den): antetli iş akışı formu + "Rapor" sayfası. Antet iki stilde: klasik ve kurumsal şerit (koyu ad bandı · başlık · açık doküman no bandı · gri alt bilgi). Şirket adı/renk/logo/alt bilgi kullanıcının tarayıcısındaki Antet ayarından ya da "İçe aktar" ile yüklenen antet JSON'undan (`tur: akis-antet`) gelir; depoya şirket adı ya da antet dosyası koyma. Antet şekilleri `antet=1` stiliyle işaretli, akış adımı sayılmaz.
 - Çizgi atlama: draw.io'da çizgi yalnızca kendi stilinde jumpStyle varsa ve kendinden önceki çizgiyi keserse atlar; `ac()` açılışta jumpStyle'ı olmayan çizgilere tercih edilen atlamayı ekler, "Yok" `jumpStyle=none` yazar. "⤳ Bağlantı" menüsü (atlama türü/boyutu, çizgi şekli) tüm çizgilere uygular ve tercihi `akis-baglanti`'ye yazar (configure'da yeni çizgilerin varsayılanı). draw.io'nun kendi satır içi menüsüne ekleme yapılamaz: embed.diagrams.net özel eklenti yüklemez ve seçim bilgisini dışarı vermez; seçili çizgi için `invokeAction: format` Biçim panelini açar.
 - Visio benzeri araçlar: şekil verileri (sorumlu/sure/maliyet/durum → draw.io `<object>` öznitelikleri, VSDX'te Shape Data), durum renkleri, diyagram raporu, katmanlar VSDX'e aktarılır.
-- Bu bulut ortamından embed.diagrams.net, github.io, jsdelivr ve Gemini’ye erişim yok; sınamada Playwright `route` ile editörü sahte protokol sayfasıyla, CDN’leri npm’den indirilen dosyalarla, Gemini’yi sahte cevapla değiştir (Chromium için `/opt/pw-browsers/chromium_headless_shell-*/chrome-linux/headless_shell`).
+- Bu bulut ortamından github.io, jsdelivr ve Gemini’ye erişim yok; CDN’leri npm’den indirilen dosyalarla, Gemini’yi sahte cevapla `route` et (hızlı birim sınaması için editör sahte protokol sayfasıyla da değiştirilebilir) (Chromium için `/opt/pw-browsers/chromium_headless_shell-*/chrome-linux/headless_shell`).
 - Yayın: GitHub Pages, `main` dalının kökü. Push = yayın.
-- Editörü sıfırdan yazma; draw.io'nun yapamadığı bir şey gerekirse sarmalayıcıya ekle (embed protokolü: https://www.drawio.com/doc/faq/embed-mode).
+- Editörü sıfırdan yazma; draw.io'nun yapamadığı bir şey gerekirse sarmalayıcıya (embed protokolü: https://www.drawio.com/doc/faq/embed-mode) ya da draw.io içi gerekiyorsa `drawio/js/PostConfig.js` eklentisine ekle.
 - Kullanıcıyla Türkçe konuş; arayüz metinleri Türkçe.
 - Depo herkese açık: sır, anahtar, müşteri adı koyma.

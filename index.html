@@ -18,7 +18,8 @@ button.ana{background:var(--vurgu);border-color:var(--vurgu);color:#fff}
 button.tehlike{color:#b91c1c}
 #ad{border:1px solid transparent;border-radius:6px;padding:5px 8px;font-weight:600;min-width:120px;max-width:260px;background:transparent}
 #ad:hover,#ad:focus{border-color:var(--cizgi);outline:none}
-#durum{color:var(--soluk);font-size:12px}
+#durum{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:20;background:#1f2937;color:#fff;font-size:13px;padding:6px 14px;border-radius:8px;pointer-events:none;max-width:calc(100vw - 32px)}
+#durum:empty{display:none}
 iframe#ed{border:0;flex:1;width:100%;display:block}
 .menu{position:relative}
 .menu>div{display:none;position:absolute;top:100%;left:0;margin-top:4px;background:#fff;border:1px solid var(--cizgi);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:4px;z-index:10;min-width:220px}
@@ -113,8 +114,8 @@ dialog textarea{width:100%;padding:8px;border:1px solid var(--cizgi);border-radi
   <button id="bAntet">🏢 Antet</button>
   <button id="bBulut">☁ Bulut: kapalı</button>
 </header>
-<!-- draw.io (Apache-2.0) gömülü editör: Visio şekilleri, .vsdx içe aktarma, PNG/PDF/SVG dışa aktarma hazır gelir -->
-<iframe id="ed" src="https://embed.diagrams.net/?embed=1&proto=json&spin=1&lang=tr&libraries=1&noExitBtn=1&saveAndExit=0&configure=1"></iframe>
+<!-- draw.io (Apache-2.0) bu depoda drawio/ altında barındırılır; yalnızca js/PostConfig.js sonuna eklenti eklendi (çizgi atlama menüleri) -->
+<iframe id="ed" src="drawio/index.html?embed=1&proto=json&spin=1&lang=tr&libraries=1&noExitBtn=1&saveAndExit=0&configure=1"></iframe>
 <input type="file" id="dosya" accept=".drawio,.xml,.dio,.vsdx,.vsd" hidden>
 <input type="file" id="yzDosya" accept="image/png,image/jpeg,image/webp,application/pdf,.xlsx,.pdf" hidden>
 <input type="file" id="logoDosya" accept="image/png,image/jpeg,image/svg+xml" hidden>
@@ -186,7 +187,7 @@ dialog textarea{width:100%;padding:8px;border:1px solid var(--cizgi);border-radi
     <div data-panel="yazi" hidden>
       <label for="yzMetin">İş akışını anlatın</label>
       <textarea id="yzMetin" rows="8" placeholder="Örn. Satın alma talebi birim tarafından açılır. Satın alma müdürü onaylarsa teklif toplanır, onaylamazsa talep sahibine iade edilir. En uygun teklif seçilip sipariş verilir, depo malı teslim alır."></textarea>
-      <p class="not">API anahtarı yoksa her satır bir adım olarak çizilir; "?" ile biten satırlar karar kutusu olur.</p>
+      <p class="not">API anahtarı yoksa metin kurallarla adımlara bölünür: virgül, nokta ve "sonra" ayırır; "başlangıçta" başa, "en sonra" sona alınır; "kontrol" geçen adımlar karar olur; "hepsinin ara kontrolü var" her işlemin arkasına kontrol ekler. Daha serbest anlatım için Gemini anahtarı girin.</p>
       <div style="text-align:right"><button class="ana" id="bYzYazi">Oluştur</button></div>
     </div>
     <div data-panel="ayar" hidden>
@@ -1123,16 +1124,56 @@ async function dosyaParcalari(f) {
   if (f.size > 15e6) throw new Error('Dosya 15 MB\'tan küçük olmalı');
   return [{ text: 'Bu dosyadaki iş akış şemasını çıkar.' }, { inline_data: { mime_type: tur, data: await base64Oku(f) } }];
 }
-// anahtar yoksa: her satır bir adım, "?" ile biten karar, "Sorumlu: adım" biçimi kulvar
+// anahtar yoksa: metin kurallarla adımlara bölünür
+// - satır, nokta, virgül ve "sonra / ardından / daha sonra" ayırır
+// - "başlangıçta / ilk olarak / önce" ile başlayan adım başa, "en sonra / son olarak" ile başlayan sona alınır
+// - "hepsinin (her adımın) ara kontrolü var" ana işlemlerin her birinin arkasına kontrol ekler
+// - "kontrol / muayene / test" geçen ya da "?" ile biten adım karar olur (Evet → devam, Hayır → uygunsuz ürün)
+// - "paketleme ve sevk" gibi iş listeleri ayrı adımlara bölünür; "Sorumlu: adım" kulvar oluşturur
+const EYLEM = /(me|ma|im|ım|um|üm|iş|ış|uş|üş|sevk|kontrol\S*|kesim|üretim|montaj|proses|laminasyon|giriş\S*|kabul|test|muayene)$/i;
+const HEPSI = /^(?:hepsinin|her birinin|tümünün|her adımın|her aşamanın|her işlemin)\s+/i;
 function metindenBasit(metin) {
-  const satirlar = metin.split(/\n+/).map(s => s.replace(/^\s*(\d+[.)-]|[-*•])\s*/, '').trim()).filter(Boolean);
+  const bas = [], orta = [], son = []; let araKontrol = null;
+  const bolumler = metin.split(/\n+|[.;]+(?=\s|$)|,/)
+    .flatMap(s => s.split(/(?<!\ben)\s+(?:daha sonra|ardından|akabinde|sonra)\s+/i))
+    .flatMap(s => s.split(/\s+(?=(?:hepsinin|her birinin|tümünün|her adımın|her aşamanın|her işlemin)\s)/i));
+  for (let s of bolumler) {
+    s = s.replace(/^\s*(\d+[.)-]|[-*•])\s*/, '').trim().replace(/^(?:ve\s+)?(?:daha sonra|sonra|ardından|akabinde)\s+/i, '');
+    let hedef = orta;
+    const basta = /^(?:en başta|başlangıçta|başta|ilk olarak|ilk önce|önce|ilk)\s+/i, sonda = /^(?:en sonunda|en sonra|en son|son olarak|sonunda)\s+/i;
+    if (basta.test(s)) { hedef = bas; s = s.replace(basta, ''); } else if (sonda.test(s)) { hedef = son; s = s.replace(sonda, ''); }
+    s = s.replace(/\s+(?:var|vardır|yapılır|yapılıyor|yapılacak|yapılmaktadır|olur|edilir)\s*$/i, '').trim();
+    if (!s) continue;
+    if (HEPSI.test(s)) { araKontrol = s.replace(HEPSI, ''); continue; }
+    s = s.replace(/^(?:üründe|ürüne|ürünün)\s+/i, '');
+    const parca = s.split(/\s+ve\s+/i), liste = parca.length > 1 && parca.every(x => EYLEM.test(x.trim())) ? parca : [s];
+    hedef.push(...liste.map(x => x.trim()).filter(Boolean));
+  }
+  const buyuk = x => x.charAt(0).toLocaleUpperCase('tr-TR') + x.slice(1);
   const adimlar = [{ id: 'bas', metin: 'Başla', tip: 'basla' }], baglantilar = [];
-  const bagla = hedef => { const o = adimlar[adimlar.length - 1]; baglantilar.push({ kaynak: o.id, hedef, etiket: o.tip === 'karar' ? 'Evet' : '' }); };
-  satirlar.forEach((s, i) => {
-    const m = s.match(/^([^:]{2,30}):\s+(.+)$/), id = 'a' + (i + 1);
-    bagla(id); adimlar.push({ id, metin: m ? m[2] : s, sorumlu: m ? m[1].trim() : '', tip: /\?\s*$/.test(s) ? 'karar' : 'islem' });
-  });
-  bagla('son'); adimlar.push({ id: 'son', metin: 'Bitir', tip: 'bitir' });
+  let uclar = [{ id: 'bas' }], n = 0;
+  const ekle = (yazi, tip, sorumlu) => {
+    const id = 'a' + (++n);
+    adimlar.push({ id, metin: buyuk(yazi), tip, sorumlu });
+    uclar.forEach(u => baglantilar.push({ kaynak: u.id, hedef: id, etiket: u.etiket || '' }));
+    uclar = [{ id }];
+    return id;
+  };
+  const kontrol = (yazi, sorumlu) => {
+    const soru = /\?\s*$/.test(yazi);
+    const id = ekle(soru ? yazi.trim() : yazi.replace(/kontrol(?:ü|u)(?=\s|$)/i, 'kontrol') + ' uygun mu?', 'karar', sorumlu), ret = 'r' + id;
+    adimlar.push({ id: ret, metin: soru ? 'Geri gönder / düzelt' : 'Uygunsuz ürün: ayır / yeniden işle', tip: 'islem', sorumlu });
+    baglantilar.push({ kaynak: id, hedef: ret, etiket: 'Hayır' });
+    uclar = [{ id, etiket: 'Evet' }];
+  };
+  for (const [grup, ana] of [[bas, false], [orta, true], [son, false]]) for (const ham of grup) {
+    const m = ham.match(/^([^:]{2,30}):\s+(.+)$/), sorumlu = m ? m[1].trim() : '', yazi = m ? m[2] : ham;
+    if (/\?\s*$/.test(yazi) || /kontrol|muayene|test|denetim/i.test(yazi)) { kontrol(yazi, sorumlu); continue; }
+    ekle(yazi, /giriş|kabul|teslim al/i.test(yazi) ? 'veri' : 'islem', sorumlu);
+    if (ana && araKontrol) kontrol(araKontrol, sorumlu);
+  }
+  adimlar.push({ id: 'son', metin: 'Bitir', tip: 'bitir' });
+  uclar.forEach(u => baglantilar.push({ kaynak: u.id, hedef: 'son', etiket: u.etiket || '' }));
   return { adimlar, baglantilar };
 }
 const YZ_STIL = {
@@ -1156,6 +1197,8 @@ function akistanXml(j) {
   baslar.forEach(a => git(a.id)); topo.reverse();
   const sev = {}; adimlar.forEach(a => sev[a.id] = 0);
   for (const id of topo) for (const h of cik[id] || []) if (!geri.has(id + '>' + h)) sev[h] = Math.max(sev[h], sev[id] + 1);
+  // yalnızca "Hayır" ile ulaşılan, çıkışı olmayan yan kutu karar kutusuyla aynı satırda dursun
+  adimlar.forEach(a => { const g = bag.filter(b => b.hedef === a.id); if (g.length === 1 && !cik[a.id] && /^hayır$/i.test((g[0].etiket || '').trim())) sev[a.id] = sev[g[0].kaynak]; });
   const boyut = t => t === 'karar' ? [130, 90] : t === 'basla' || t === 'bitir' ? [120, 50] : [160, 64];
   const sorumlular = [...new Set(adimlar.map(a => (a.sorumlu || '').trim()).filter(Boolean))];
   const etiketHtml = s => kacis(kacis(s).replace(/\n/g, '<br>'));
@@ -1181,8 +1224,15 @@ function akistanXml(j) {
       y += h;
     });
   } else {
+    // ana yol (Hayır dışındaki ilk çıkışlar) ortadaki sütunda, yan dallar sağında
+    const ana = new Set(); let u = (adimlar.find(a => a.tip === 'basla') || adimlar[0])?.id;
+    while (u && !ana.has(u)) { ana.add(u); const k = bag.find(b => b.kaynak === u && !/^hayır$/i.test((b.etiket || '').trim()) && !geri.has(b.kaynak + '>' + b.hedef)); u = k && k.hedef; }
     const katman = {}; adimlar.forEach(a => (katman[sev[a.id]] ||= []).push(a));
-    Object.entries(katman).forEach(([s, liste]) => liste.forEach((a, i) => dugum(a, 400 + (i - (liste.length - 1) / 2) * 220, 50 + +s * 130, '1')));
+    Object.entries(katman).forEach(([s, liste]) => {
+      liste.sort((x, y) => ana.has(y.id) - ana.has(x.id));
+      const ortada = ana.has(liste[0].id);
+      liste.forEach((a, i) => dugum(a, ortada ? 400 + i * 240 : 400 + (i - (liste.length - 1) / 2) * 220, 50 + +s * 130, '1'));
+    });
   }
   bag.forEach((b, i) => {
     hucreler += `<mxCell id="k${i}" value="${etiketHtml(b.etiket || '')}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;jumpStyle=arc;jumpSize=8;" edge="1" parent="1" source="n_${kacis(b.kaynak)}" target="n_${kacis(b.hedef)}"><mxGeometry relative="1" as="geometry"/></mxCell>`;
